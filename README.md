@@ -153,12 +153,16 @@ To try the app without spending anything, point the **Custom / OpenAI-compatible
    | Field | Value |
    | --- | --- |
    | API endpoint | `https://generativelanguage.googleapis.com/v1beta/openai` |
-   | Model | `gemini-3.8-flash` |
+   | Model | `gemini-3.6-flash` |
    | API key | the key from AI Studio |
 
    The endpoint is the OpenAI-compatible **base URL**, not the `.../models/<model>:generateContent`
    address shown in Google's own curl examples.
    The app appends `/chat/completions` itself.
+
+   The free tier is heavily contended, so a given model often answers `503 UNAVAILABLE`.
+   The app retries a transient failure twice before giving up.
+   If a model stays unavailable, try another from the list, such as `gemini-3.5-flash` or `gemini-flash-latest`.
 
 3. Press **Save provider**, then **Test connection**.
 

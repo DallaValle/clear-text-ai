@@ -18,6 +18,13 @@ public sealed class OpenAiCompatibleProvider : IAiProvider
 {
     private const string ChatCompletionsPath = "/chat/completions";
 
+    /// <summary>Free tiers answer 503 under load often enough that one attempt is not a fair test.</summary>
+    public static readonly IReadOnlyList<TimeSpan> DefaultRetryDelays =
+    [
+        TimeSpan.FromMilliseconds(700),
+        TimeSpan.FromMilliseconds(1800),
+    ];
+
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web)
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -27,14 +34,17 @@ public sealed class OpenAiCompatibleProvider : IAiProvider
     private readonly IPromptBuilder _promptBuilder;
     private readonly IApiKeyStore _apiKeyStore;
     private readonly ISettingsService _settings;
+    private readonly IReadOnlyList<TimeSpan> _retryDelays;
 
     public OpenAiCompatibleProvider(
         AiProviderKind kind,
         HttpClient httpClient,
         IPromptBuilder promptBuilder,
         IApiKeyStore apiKeyStore,
-        ISettingsService settings)
+        ISettingsService settings,
+        IReadOnlyList<TimeSpan>? retryDelays = null)
     {
+        _retryDelays = retryDelays ?? DefaultRetryDelays;
         Kind = kind;
         _httpClient = httpClient;
         _promptBuilder = promptBuilder;
@@ -80,6 +90,29 @@ public sealed class OpenAiCompatibleProvider : IAiProvider
         }
 
         var prompt = _promptBuilder.Build(text, options);
+
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                return await SendAsync(prompt, options, providerSettings, baseUrl, apiKey, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (AiProviderException ex) when (ex.IsTransient && attempt <= _retryDelays.Count)
+            {
+                await Task.Delay(_retryDelays[attempt - 1], cancellationToken).ConfigureAwait(false);
+            }
+        }
+    }
+
+    private async Task<string> SendAsync(
+        RewritePrompt prompt,
+        RewriteOptions options,
+        AiProviderSettings providerSettings,
+        string baseUrl,
+        string? apiKey,
+        CancellationToken cancellationToken)
+    {
         var request = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}{ChatCompletionsPath}")
         {
             Content = JsonContent.Create(

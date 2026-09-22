@@ -44,7 +44,9 @@ public class OpenAiCompatibleProviderTests
             new HttpClient(handler, disposeHandler: false),
             new PromptBuilder(),
             apiKeyStore,
-            settings);
+            settings,
+            // No real waiting in tests; the retry policy itself is what is under test.
+            retryDelays: [TimeSpan.Zero, TimeSpan.Zero]);
 
         return (provider, handler);
     }
@@ -241,6 +243,47 @@ public class OpenAiCompatibleProviderTests
         Assert.Equal(AiErrorKind.AccessDenied, error.Kind);
         Assert.Contains("credits", error.Message);
         Assert.DoesNotContain("rejected the API key", error.Message);
+    }
+
+    /// <summary>A free tier answering 503 under load should not fail the user's first attempt.</summary>
+    [Fact]
+    public async Task RewriteTextAsync_RetriesATransientFailureAndSucceeds()
+    {
+        var overloaded = """{"error":{"code":503,"message":"high demand","status":"UNAVAILABLE"}}""";
+        var (provider, handler) = Create(StubHttpMessageHandler.Sequence(
+            (HttpStatusCode.ServiceUnavailable, overloaded),
+            (HttpStatusCode.ServiceUnavailable, overloaded),
+            (HttpStatusCode.OK, CompletionJson("A clearer sentence."))));
+
+        var result = await provider.RewriteTextAsync("a sentence", new RewriteOptions());
+
+        Assert.Equal("A clearer sentence.", result);
+        Assert.Equal(3, handler.Requests.Count);
+    }
+
+    [Fact]
+    public async Task RewriteTextAsync_GivesUpAfterTheRetryCap()
+    {
+        var (provider, handler) = Create(StubHttpMessageHandler.Json(
+            HttpStatusCode.ServiceUnavailable, """{"error":{"status":"UNAVAILABLE"}}"""));
+
+        var error = await Assert.ThrowsAsync<AiProviderException>(
+            () => provider.RewriteTextAsync("a sentence", new RewriteOptions()));
+
+        Assert.Equal(AiErrorKind.ProviderUnavailable, error.Kind);
+        Assert.Equal(3, handler.Requests.Count);
+    }
+
+    [Fact]
+    public async Task RewriteTextAsync_DoesNotRetryAPermanentFailure()
+    {
+        var (provider, handler) = Create(StubHttpMessageHandler.Json(
+            HttpStatusCode.Unauthorized, """{"error":"bad key"}"""));
+
+        await Assert.ThrowsAsync<AiProviderException>(
+            () => provider.RewriteTextAsync("a sentence", new RewriteOptions()));
+
+        Assert.Single(handler.Requests);
     }
 
     [Fact]

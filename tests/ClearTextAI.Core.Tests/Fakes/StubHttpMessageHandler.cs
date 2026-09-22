@@ -22,6 +22,20 @@ public sealed class StubHttpMessageHandler : HttpMessageHandler
 
     public static StubHttpMessageHandler Throws(Exception exception) => new(_ => throw exception);
 
+    /// <summary>Replays the given responses in order, repeating the last one once exhausted.</summary>
+    public static StubHttpMessageHandler Sequence(params (HttpStatusCode Status, string Json)[] responses)
+    {
+        var index = 0;
+        return new(_ =>
+        {
+            var current = responses[Math.Min(index++, responses.Length - 1)];
+            return new HttpResponseMessage(current.Status)
+            {
+                Content = new StringContent(current.Json, Encoding.UTF8, "application/json"),
+            };
+        });
+    }
+
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken)
