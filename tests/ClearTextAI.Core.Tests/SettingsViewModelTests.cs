@@ -21,7 +21,7 @@ public class SettingsViewModelTests
             Failure is null ? Task.FromResult("ok") : Task.FromException<string>(Failure);
     }
 
-    private static (SettingsViewModel Vm, InMemorySettingsService Settings, ApiKeyStore Keys, NoopProvider Provider, FakeDialogService Dialogs, FakeLinkOpener Links)
+    private static (SettingsViewModel Vm, InMemorySettingsService Settings, ApiKeyStore Keys, NoopProvider Provider, FakeDialogService Dialogs, FakeLinkOpener Links, FakeClipboardService Clipboard)
         Create()
     {
         var settings = new InMemorySettingsService();
@@ -30,13 +30,14 @@ public class SettingsViewModelTests
         var resolver = new AiProviderResolver([provider], settings);
         var dialogs = new FakeDialogService();
         var links = new FakeLinkOpener();
-        return (new SettingsViewModel(settings, keys, resolver, dialogs, links), settings, keys, provider, dialogs, links);
+        var clipboard = new FakeClipboardService();
+        return (new SettingsViewModel(settings, keys, resolver, dialogs, links, clipboard), settings, keys, provider, dialogs, links, clipboard);
     }
 
     [Fact]
     public async Task Load_ReflectsTheStoredSettings()
     {
-        var (vm, settings, _, _, _, _) = Create();
+        var (vm, settings, _, _, _, _, _) = Create();
         settings.Current.RewriteOptions.Tone = RewriteTone.Formal;
         settings.Current.RewriteOptions.CustomInstructions = "no marketing speak";
 
@@ -52,7 +53,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task ChoosingAPreset_UpdatesEveryOptionItControls()
     {
-        var (vm, _, _, _, _, _) = Create();
+        var (vm, _, _, _, _, _, _) = Create();
         await vm.LoadAsync();
 
         vm.SelectedPreset = vm.Presets.First(p => p.Value == RewritePreset.GrammarOnly);
@@ -67,7 +68,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task EditingAnOptionByHand_SwitchesToCustom()
     {
-        var (vm, _, _, _, _, _) = Create();
+        var (vm, _, _, _, _, _, _) = Create();
         await vm.LoadAsync();
         vm.SelectedPreset = vm.Presets.First(p => p.Value == RewritePreset.Professional);
 
@@ -80,7 +81,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task Save_PersistsTheFormAndNormalizesIt()
     {
-        var (vm, settings, _, _, _, _) = Create();
+        var (vm, settings, _, _, _, _, _) = Create();
         await vm.LoadAsync();
         vm.Temperature = 0.65;
         vm.StyleLevel = 3;
@@ -103,7 +104,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task Save_StoresTheApiKeyAndClearsTheField()
     {
-        var (vm, _, keys, _, _, _) = Create();
+        var (vm, _, keys, _, _, _, _) = Create();
         await vm.LoadAsync();
         vm.ApiKey = "sk-ant-test";
 
@@ -117,7 +118,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task RemoveApiKey_AsksFirstAndDeletesTheKey()
     {
-        var (vm, _, keys, _, dialogs, _) = Create();
+        var (vm, _, keys, _, dialogs, _, _) = Create();
         await keys.SetAsync(AiProviderKind.Claude, "sk-ant-test");
         await vm.LoadAsync();
 
@@ -131,7 +132,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task RemoveApiKey_DoesNothingWhenTheUserDeclines()
     {
-        var (vm, _, keys, _, dialogs, _) = Create();
+        var (vm, _, keys, _, dialogs, _, _) = Create();
         await keys.SetAsync(AiProviderKind.Claude, "sk-ant-test");
         await vm.LoadAsync();
         dialogs.ConfirmResult = false;
@@ -144,7 +145,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task TestConnection_ReportsSuccess()
     {
-        var (vm, _, _, _, _, _) = Create();
+        var (vm, _, _, _, _, _, _) = Create();
         await vm.LoadAsync();
 
         await vm.TestConnectionCommand.ExecuteAsync(null);
@@ -156,7 +157,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task TestConnection_ShowsTheProviderMessageOnFailure()
     {
-        var (vm, _, _, provider, _, _) = Create();
+        var (vm, _, _, provider, _, _, _) = Create();
         await vm.LoadAsync();
         provider.Failure = AiProviderException.For(AiErrorKind.InvalidApiKey, "Claude");
 
@@ -169,7 +170,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task SwitchingProvider_LoadsThatProvidersOwnModelAndEndpoint()
     {
-        var (vm, settings, _, _, _, _) = Create();
+        var (vm, settings, _, _, _, _, _) = Create();
         settings.Current.GetOrCreate(AiProviderKind.OpenAiCompatible).Endpoint = "http://localhost:11434/v1";
         settings.Current.GetOrCreate(AiProviderKind.OpenAiCompatible).Model = "llama3";
         await vm.LoadAsync();
@@ -184,7 +185,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task ClaudeSelected_ExplainsThatTemperatureIsAppliedThroughThePrompt()
     {
-        var (vm, _, _, _, _, _) = Create();
+        var (vm, _, _, _, _, _, _) = Create();
         await vm.LoadAsync();
 
         Assert.False(vm.TemperatureIsUsed);
@@ -194,7 +195,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task ApiKeyLink_PointsAtTheSelectedProvidersKeyPage()
     {
-        var (vm, _, _, _, _, links) = Create();
+        var (vm, _, _, _, _, links, _) = Create();
         await vm.LoadAsync();
 
         Assert.True(vm.HasApiKeyPage);
@@ -208,7 +209,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task ApiKeyLink_FollowsTheProviderSwitch()
     {
-        var (vm, _, _, _, _, links) = Create();
+        var (vm, _, _, _, _, links, _) = Create();
         await vm.LoadAsync();
 
         vm.SelectedProvider = vm.Providers.First(p => p.Value == AiProviderKind.OpenAi);
@@ -220,7 +221,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task ApiKeyLink_IsHiddenForACustomEndpoint()
     {
-        var (vm, _, _, _, _, links) = Create();
+        var (vm, _, _, _, _, links, _) = Create();
         await vm.LoadAsync();
 
         vm.SelectedProvider = vm.Providers.First(p => p.Value == AiProviderKind.OpenAiCompatible);
@@ -246,7 +247,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task SavingOneSection_LeavesTheOtherSectionsUntouched()
     {
-        var (vm, settings, _, _, _, _) = Create();
+        var (vm, settings, _, _, _, _, _) = Create();
         await vm.LoadAsync();
 
         // Edit both sections, then save only the provider one.
@@ -270,7 +271,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task SavingPrivacy_TouchesOnlyThePrivacyFlags()
     {
-        var (vm, settings, _, _, _, _) = Create();
+        var (vm, settings, _, _, _, _, _) = Create();
         await vm.LoadAsync();
 
         vm.HistoryEnabled = false;
@@ -287,7 +288,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task TestConnection_DoesNotPersistUnsavedRewriteOptions()
     {
-        var (vm, settings, _, _, _, _) = Create();
+        var (vm, settings, _, _, _, _, _) = Create();
         await vm.LoadAsync();
         vm.Temperature = 0.91;
 
@@ -297,9 +298,63 @@ public class SettingsViewModelTests
     }
 
     [Fact]
+    public async Task TestConnection_WhenItFails_KeepsTheTypedApiKeyInTheField()
+    {
+        var (vm, _, keys, provider, _, _, _) = Create();
+        await vm.LoadAsync();
+        vm.ApiKey = "sk-ant-typed-by-hand";
+        provider.Failure = AiProviderException.For(AiErrorKind.AccessDenied, "Claude");
+
+        await vm.TestConnectionCommand.ExecuteAsync(null);
+
+        // The field keeps what the user pasted, so they can correct it instead of retyping.
+        Assert.Equal("sk-ant-typed-by-hand", vm.ApiKey);
+        Assert.True(vm.HasError);
+        // It is still stored, because the test had to use it to find out that it failed.
+        Assert.Equal("sk-ant-typed-by-hand", await keys.GetAsync(AiProviderKind.Claude));
+    }
+
+    [Fact]
+    public async Task TestConnection_WhenItSucceeds_ClearsTheField()
+    {
+        var (vm, _, _, _, _, _, _) = Create();
+        await vm.LoadAsync();
+        vm.ApiKey = "sk-ant-good";
+
+        await vm.TestConnectionCommand.ExecuteAsync(null);
+
+        Assert.Empty(vm.ApiKey);
+        Assert.True(vm.HasStoredApiKey);
+        Assert.False(vm.HasError);
+    }
+
+    [Fact]
+    public async Task CopyError_PutsTheMessageOnTheClipboard()
+    {
+        var (vm, _, _, provider, _, _, clipboard) = Create();
+        await vm.LoadAsync();
+        provider.Failure = AiProviderException.For(AiErrorKind.Network, "Claude");
+        await vm.TestConnectionCommand.ExecuteAsync(null);
+
+        Assert.True(vm.CopyErrorCommand.CanExecute(null));
+        await vm.CopyErrorCommand.ExecuteAsync(null);
+
+        Assert.Equal("Unable to connect to Claude. Check your internet connection and try again.", clipboard.LastText);
+    }
+
+    [Fact]
+    public async Task CopyError_IsUnavailableWhenThereIsNoError()
+    {
+        var (vm, _, _, _, _, _, _) = Create();
+        await vm.LoadAsync();
+
+        Assert.False(vm.CopyErrorCommand.CanExecute(null));
+    }
+
+    [Fact]
     public async Task Grok_UsesTheXaiDefaultsAndKeyPage()
     {
-        var (vm, _, _, _, _, links) = Create();
+        var (vm, _, _, _, _, links, _) = Create();
         await vm.LoadAsync();
 
         vm.SelectedProvider = vm.Providers.First(p => p.Value == AiProviderKind.Grok);
@@ -318,7 +373,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task CustomEndpoint_OffersNoSuggestedModelsAndNeedsNoKey()
     {
-        var (vm, _, _, _, _, _) = Create();
+        var (vm, _, _, _, _, _, _) = Create();
         await vm.LoadAsync();
 
         vm.SelectedProvider = vm.Providers.First(p => p.Value == AiProviderKind.OpenAiCompatible);
@@ -334,7 +389,7 @@ public class SettingsViewModelTests
     [Fact]
     public async Task PickingASuggestedModel_UpdatesTheModelId()
     {
-        var (vm, _, _, _, _, _) = Create();
+        var (vm, _, _, _, _, _, _) = Create();
         await vm.LoadAsync();
 
         vm.SelectedSuggestedModel = ModelCatalog.Claude.Last();

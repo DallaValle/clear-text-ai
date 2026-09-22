@@ -18,6 +18,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly IAiProviderResolver _resolver;
     private readonly IDialogService _dialogs;
     private readonly ILinkOpener _links;
+    private readonly IClipboardService _clipboard;
 
     /// <summary>Suppresses the "switch to Custom" reaction while the form is being populated.</summary>
     private bool _isLoading;
@@ -27,13 +28,15 @@ public partial class SettingsViewModel : ObservableObject
         IApiKeyStore apiKeyStore,
         IAiProviderResolver resolver,
         IDialogService dialogs,
-        ILinkOpener links)
+        ILinkOpener links,
+        IClipboardService clipboard)
     {
         _settings = settings;
         _apiKeyStore = apiKeyStore;
         _resolver = resolver;
         _dialogs = dialogs;
         _links = links;
+        _clipboard = clipboard;
 
         Providers =
         [
@@ -145,6 +148,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
     [NotifyPropertyChangedFor(nameof(HasMessage))]
+    [NotifyCanExecuteChangedFor(nameof(CopyErrorCommand))]
     private string? _errorMessage;
 
     public bool HasSuggestedModels => SuggestedModels.Count > 0;
@@ -251,7 +255,8 @@ public partial class SettingsViewModel : ObservableObject
         {
             ApplyProviderToSettings();
             await _settings.SaveAsync().ConfigureAwait(true);
-            await StoreApiKeyIfProvidedAsync().ConfigureAwait(true);
+            await PersistApiKeyAsync().ConfigureAwait(true);
+            ApiKey = string.Empty;
         },
         "Provider settings saved.");
 
@@ -298,7 +303,12 @@ public partial class SettingsViewModel : ObservableObject
         }
     }
 
-    private async Task StoreApiKeyIfProvidedAsync(CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Stores the typed key but leaves the field alone. The field is only emptied once the
+    /// action it belongs to has actually succeeded, so a failed test does not wipe what
+    /// the user just pasted.
+    /// </summary>
+    private async Task PersistApiKeyAsync(CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(ApiKey))
         {
@@ -306,8 +316,15 @@ public partial class SettingsViewModel : ObservableObject
         }
 
         await _apiKeyStore.SetAsync(SelectedProvider.Value, ApiKey, cancellationToken).ConfigureAwait(true);
-        ApiKey = string.Empty;
         HasStoredApiKey = true;
+    }
+
+    /// <summary>An error is only useful if it can leave the app, for a ticket or a search.</summary>
+    [RelayCommand(CanExecute = nameof(HasError))]
+    private async Task CopyErrorAsync()
+    {
+        await _clipboard.SetTextAsync(ErrorMessage ?? string.Empty).ConfigureAwait(true);
+        StatusMessage = "Error copied to clipboard.";
     }
 
     [RelayCommand(CanExecute = nameof(HasApiKeyPage))]
@@ -346,7 +363,7 @@ public partial class SettingsViewModel : ObservableObject
             // Rewrite options are deliberately untouched: this button belongs to the provider card.
             ApplyProviderToSettings();
             await _settings.SaveAsync(cancellationToken).ConfigureAwait(true);
-            await StoreApiKeyIfProvidedAsync(cancellationToken).ConfigureAwait(true);
+            await PersistApiKeyAsync(cancellationToken).ConfigureAwait(true);
 
             var provider = _resolver.Resolve(SelectedProvider.Value);
             await provider.RewriteTextAsync(
@@ -354,6 +371,8 @@ public partial class SettingsViewModel : ObservableObject
                 RewritePresets.Create(RewritePreset.GrammarOnly),
                 cancellationToken).ConfigureAwait(true);
 
+            // Only now is it safe to empty the field: on failure the user keeps what they pasted.
+            ApiKey = string.Empty;
             StatusMessage = $"Connected to {provider.DisplayName} successfully.";
         }
         catch (AiProviderException ex)

@@ -124,15 +124,24 @@
                    Style="{StaticResource Muted}"
                    VerticalOptions="Center" />
 
-            <Label Grid.Row="1" Grid.ColumnSpan="3"
+            <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
                    Text="{Binding StatusMessage}"
                    IsVisible="{Binding HasStatus}"
-                   Style="{StaticResource Muted}" />
+                   Style="{StaticResource SuccessText}"
+                   VerticalOptions="Center" />
 
-            <Label Grid.Row="1" Grid.ColumnSpan="3"
+            <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
                    Text="{Binding ErrorMessage}"
                    IsVisible="{Binding HasError}"
-                   Style="{StaticResource ErrorText}" />
+                   Style="{StaticResource ErrorText}"
+                   VerticalOptions="Center" />
+
+            <Button Grid.Row="1" Grid.Column="2"
+                    Text="Copy error"
+                    Style="{StaticResource SecondaryButton}"
+                    HorizontalOptions="Start"
+                    IsVisible="{Binding HasError}"
+                    Command="{Binding CopyErrorCommand}" />
         </Grid>
     </Grid>
 </ContentPage>

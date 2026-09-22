@@ -32,6 +32,12 @@
         <Setter Property="TextColor" Value="{StaticResource Danger}" />
     </Style>
 
+    <!-- Deliberately the same metrics as ErrorText, so a result reads the same whether it went well or not. -->
+    <Style x:Key="SuccessText" TargetType="Label">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource SuccessLight}, Dark={StaticResource SuccessDark}}" />
+    </Style>
+
     <!-- The rounded panel every card and input field is built from. -->
     <Style x:Key="Card" TargetType="Border">
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceDark}}" />

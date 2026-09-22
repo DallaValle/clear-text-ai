@@ -184,6 +184,20 @@ public class MainViewModelTests
     }
 
     [Fact]
+    public async Task CopyError_PutsTheMessageOnTheClipboard()
+    {
+        var (vm, rewrite, clipboard, _, _) = Create();
+        vm.InputText = "text";
+        rewrite.Failure = AiProviderException.For(AiErrorKind.RateLimited, "Claude");
+        await vm.ImproveTextCommand.ExecuteAsync(null);
+
+        Assert.True(vm.CopyErrorCommand.CanExecute(null));
+        await vm.CopyErrorCommand.ExecuteAsync(null);
+
+        Assert.Equal(vm.ErrorMessage, clipboard.LastText);
+    }
+
+    [Fact]
     public async Task ClearInput_ResetsEverything()
     {
         var (vm, _, _, _, _) = Create();

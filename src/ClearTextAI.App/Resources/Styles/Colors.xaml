@@ -6,6 +6,8 @@
     <Color x:Key="PrimaryHover">#1D4ED8</Color>
     <Color x:Key="PrimaryText">#FFFFFF</Color>
     <Color x:Key="Danger">#DC2626</Color>
+    <Color x:Key="SuccessLight">#15803D</Color>
+    <Color x:Key="SuccessDark">#4ADE80</Color>
 
     <Color x:Key="PageBackgroundLight">#F5F7FA</Color>
     <Color x:Key="PageBackgroundDark">#0B0F17</Color>

@@ -55,6 +55,7 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
+    [NotifyCanExecuteChangedFor(nameof(CopyErrorCommand))]
     private string? _errorMessage;
 
     [ObservableProperty]
@@ -144,6 +145,13 @@ public partial class MainViewModel : ObservableObject
     {
         await _clipboard.SetTextAsync(OutputText).ConfigureAwait(true);
         StatusMessage = "Copied to clipboard.";
+    }
+
+    [RelayCommand(CanExecute = nameof(HasError))]
+    private async Task CopyErrorAsync()
+    {
+        await _clipboard.SetTextAsync(ErrorMessage ?? string.Empty).ConfigureAwait(true);
+        StatusMessage = "Error copied to clipboard.";
     }
 
     [RelayCommand(CanExecute = nameof(HasInput))]
