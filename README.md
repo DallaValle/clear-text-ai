@@ -140,6 +140,39 @@ Settings links straight to the key page of whichever provider you select.
 To add another provider, implement `IAiProvider` and register it in `MauiProgram.RegisterServices`.
 `AiProviderResolver` picks the one the user selected, and nothing else changes.
 
+## Testing without paying for anything
+
+Claude, OpenAI and Grok all bill per token, and a brand new xAI or Anthropic account starts with no credits.
+To try the app without spending anything, point the **Custom / OpenAI-compatible** provider at a free endpoint.
+
+### Google Gemini, free key, no credit card
+
+1. Get a key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
+2. In Settings choose **Custom / OpenAI-compatible** and fill in:
+
+   | Field | Value |
+   | --- | --- |
+   | API endpoint | `https://generativelanguage.googleapis.com/v1beta/openai` |
+   | Model | `gemini-3.8-flash` |
+   | API key | the key from AI Studio |
+   | Max output tokens | `4096` |
+
+3. Press **Save provider**, then **Test connection**.
+
+### Groq, fast and free to start
+
+Same idea, with endpoint `https://api.groq.com/openai/v1` and a model such as `llama-3.3-70b-versatile` or `openai/gpt-oss-20b`.
+Get a key at [console.groq.com](https://console.groq.com/keys).
+Note that Groq and Grok are unrelated companies despite the names.
+
+### A local model, no account at all
+
+Install [Ollama](https://ollama.com), run `ollama pull llama3.2`, then use endpoint `http://localhost:11434/v1`, model `llama3.2`, and leave the API key empty.
+Everything stays on your machine and nothing is ever sent anywhere.
+
+Expect weaker rewrites from a small local model than from a frontier one.
+These options are for exercising the app end to end, not for judging the quality of the result.
+
 ## Where your data lives
 
 | Data | Location |

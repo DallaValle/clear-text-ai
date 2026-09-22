@@ -326,6 +326,9 @@ public class SettingsViewModelTests
         Assert.False(vm.HasSuggestedModels);
         Assert.Empty(vm.SuggestedModels);
         Assert.False(vm.ApiKeyRequired);
+        // The field stays available: a custom endpoint is often a hosted service that needs a key.
+        Assert.Contains("API key", vm.ApiKeyLabel);
+        Assert.Contains("leave empty", vm.ApiKeyLabel);
     }
 
     [Fact]

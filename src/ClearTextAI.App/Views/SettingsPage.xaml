@@ -38,7 +38,7 @@
                         <Label Text="API endpoint" Style="{StaticResource Muted}" />
                         <Entry Text="{Binding Endpoint}" Placeholder="{Binding EndpointPlaceholder}" />
 
-                        <Label Text="API key" Style="{StaticResource Muted}" IsVisible="{Binding ApiKeyRequired}" />
+                        <Label Text="{Binding ApiKeyLabel}" Style="{StaticResource Muted}" />
                         <Entry Text="{Binding ApiKey}"
                                IsPassword="True"
                                Placeholder="Paste a key to store or replace it" />

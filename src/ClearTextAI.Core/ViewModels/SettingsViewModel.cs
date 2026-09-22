@@ -75,6 +75,7 @@ public partial class SettingsViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasSuggestedModels))]
     [NotifyPropertyChangedFor(nameof(EndpointPlaceholder))]
     [NotifyPropertyChangedFor(nameof(ApiKeyRequired))]
+    [NotifyPropertyChangedFor(nameof(ApiKeyLabel))]
     [NotifyPropertyChangedFor(nameof(HasApiKeyPage))]
     [NotifyPropertyChangedFor(nameof(ApiKeyPageLabel))]
     [NotifyPropertyChangedFor(nameof(TemperatureIsUsed))]
@@ -149,6 +150,14 @@ public partial class SettingsViewModel : ObservableObject
     public bool HasSuggestedModels => SuggestedModels.Count > 0;
 
     public bool ApiKeyRequired => AiProviderSettings.RequiresApiKey(SelectedProvider.Value);
+
+    /// <summary>
+    /// The field is always shown: a custom endpoint is just as likely to be a hosted
+    /// OpenAI-compatible service that needs a key as a local model that does not.
+    /// </summary>
+    public string ApiKeyLabel => ApiKeyRequired
+        ? "API key"
+        : "API key (leave empty for a local model that needs none)";
 
     /// <summary>False for a custom endpoint, which has no key page to send the user to.</summary>
     public bool HasApiKeyPage => ProviderLinks.ApiKeyPageFor(SelectedProvider.Value) is not null;
