@@ -16,6 +16,8 @@ namespace ClearTextAI.Core.Services.AI;
 /// </summary>
 public sealed class OpenAiCompatibleProvider : IAiProvider
 {
+    private const string ChatCompletionsPath = "/chat/completions";
+
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web)
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -78,7 +80,7 @@ public sealed class OpenAiCompatibleProvider : IAiProvider
         }
 
         var prompt = _promptBuilder.Build(text, options);
-        var request = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/chat/completions")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}{ChatCompletionsPath}")
         {
             Content = JsonContent.Create(
                 new ChatCompletionRequest(
@@ -177,7 +179,15 @@ public sealed class OpenAiCompatibleProvider : IAiProvider
             throw AiProviderException.For(AiErrorKind.MissingEndpoint, DisplayName);
         }
 
-        return endpoint.TrimEnd('/');
+        endpoint = endpoint.TrimEnd('/');
+
+        // Tolerate an endpoint pasted with the path already on it, a very easy mistake to make.
+        if (endpoint.EndsWith(ChatCompletionsPath, StringComparison.OrdinalIgnoreCase))
+        {
+            endpoint = endpoint[..^ChatCompletionsPath.Length];
+        }
+
+        return endpoint;
     }
 
     private static AiErrorKind MapStatusCode(HttpStatusCode statusCode) => statusCode switch

@@ -21,7 +21,13 @@ public sealed class AiProviderException : Exception
         or AiErrorKind.ProviderUnavailable;
 
     public static AiProviderException For(AiErrorKind kind, string providerName, Exception? inner = null) =>
-        new(kind, Describe(kind, providerName), inner);
+        new(kind, Capitalize(Describe(kind, providerName)), inner);
+
+    /// <summary>Some provider names are not proper nouns ("the custom endpoint"), so fix the sentence start.</summary>
+    private static string Capitalize(string message) =>
+        message.Length > 0 && char.IsLower(message[0])
+            ? char.ToUpperInvariant(message[0]) + message[1..]
+            : message;
 
     private static string Describe(AiErrorKind kind, string provider) => kind switch
     {
@@ -46,7 +52,7 @@ public sealed class AiProviderException : Exception
         AiErrorKind.ProviderUnavailable =>
             $"{provider} is temporarily unavailable. Try again in a minute.",
         AiErrorKind.InvalidRequest =>
-            $"{provider} could not process this request. Check the model name and the output token limit in Settings.",
+            $"{provider} could not process this request. Check the endpoint, the model name and the output token limit in Settings.",
         AiErrorKind.EmptyResponse =>
             $"{provider} returned an empty result. Try again, or lower the creativity setting.",
         AiErrorKind.ResponseTruncated =>

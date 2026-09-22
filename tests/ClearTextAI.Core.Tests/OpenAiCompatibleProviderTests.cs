@@ -142,6 +142,24 @@ public class OpenAiCompatibleProviderTests
         Assert.Null(request.Headers.Authorization);
     }
 
+    /// <summary>Pasting the full path into the endpoint field is an easy mistake; do not double it up.</summary>
+    [Theory]
+    [InlineData("https://gateway.internal/v1")]
+    [InlineData("https://gateway.internal/v1/")]
+    [InlineData("https://gateway.internal/v1/chat/completions")]
+    public async Task RewriteTextAsync_NormalisesTheEndpointPath(string configured)
+    {
+        var (provider, handler) = Create(
+            StubHttpMessageHandler.Json(HttpStatusCode.OK, CompletionJson("ok")),
+            AiProviderKind.OpenAiCompatible,
+            withApiKey: false,
+            endpoint: configured);
+
+        await provider.RewriteTextAsync("a sentence", new RewriteOptions());
+
+        Assert.Equal("https://gateway.internal/v1/chat/completions", Assert.Single(handler.Requests).RequestUri!.ToString());
+    }
+
     [Fact]
     public async Task RewriteTextAsync_CustomProviderWithoutEndpoint_AsksForConfiguration()
     {

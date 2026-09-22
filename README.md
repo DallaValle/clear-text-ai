@@ -155,7 +155,10 @@ To try the app without spending anything, point the **Custom / OpenAI-compatible
    | API endpoint | `https://generativelanguage.googleapis.com/v1beta/openai` |
    | Model | `gemini-3.8-flash` |
    | API key | the key from AI Studio |
-   | Max output tokens | `4096` |
+
+   The endpoint is the OpenAI-compatible **base URL**, not the `.../models/<model>:generateContent`
+   address shown in Google's own curl examples.
+   The app appends `/chat/completions` itself.
 
 3. Press **Save provider**, then **Test connection**.
 

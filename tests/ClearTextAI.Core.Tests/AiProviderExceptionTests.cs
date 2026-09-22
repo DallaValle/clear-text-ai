@@ -22,6 +22,20 @@ public class AiProviderExceptionTests
         }
     }
 
+    /// <summary>"the custom endpoint" is not a proper noun, so it must not start a sentence in lower case.</summary>
+    [Theory]
+    [InlineData("Claude")]
+    [InlineData("the custom endpoint")]
+    public void EveryMessageStartsAsASentence(string providerName)
+    {
+        foreach (var kind in Enum.GetValues<AiErrorKind>())
+        {
+            var message = AiProviderException.For(kind, providerName).Message;
+
+            Assert.True(char.IsUpper(message[0]), $"{kind} for '{providerName}' starts with '{message[0]}': {message}");
+        }
+    }
+
     [Fact]
     public void NetworkMessage_TellsTheUserWhatToDo()
     {
