@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ClearTextAI.App/ClearTextAI.App.csproj" />
+    <Project Path="src/ClearTextAI.Core/ClearTextAI.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ClearTextAI.Core.Tests/ClearTextAI.Core.Tests.csproj" />
+  </Folder>
+</Solution>

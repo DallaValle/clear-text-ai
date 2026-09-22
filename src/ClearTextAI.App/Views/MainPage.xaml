@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:ClearTextAI.Core.ViewModels;assembly=ClearTextAI.Core"
+             x:Class="ClearTextAI.App.Views.MainPage"
+             x:DataType="viewmodels:MainViewModel"
+             Title="ClearText AI"
+             Shell.NavBarIsVisible="False">
+
+    <ContentPage.MenuBarItems>
+        <MenuBarItem Text="Text">
+            <MenuFlyoutItem x:Name="ImproveMenuItem" Text="Improve Text" Command="{Binding ImproveTextCommand}" />
+            <MenuFlyoutItem x:Name="CopyMenuItem" Text="Copy Result" Command="{Binding CopyOutputCommand}" />
+            <MenuFlyoutItem x:Name="ClearMenuItem" Text="Clear Input" Command="{Binding ClearInputCommand}" />
+        </MenuBarItem>
+        <MenuBarItem Text="View">
+            <MenuFlyoutItem x:Name="SettingsMenuItem" Text="Settings" Command="{Binding OpenSettingsCommand}" />
+            <MenuFlyoutItem x:Name="HistoryMenuItem" Text="History" Command="{Binding OpenHistoryCommand}" />
+        </MenuBarItem>
+    </ContentPage.MenuBarItems>
+
+    <Grid RowDefinitions="Auto,*,Auto" Padding="20" RowSpacing="16">
+
+        <!-- Header -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*,Auto,Auto" ColumnSpacing="12">
+            <Label Grid.Column="0"
+                   Text="ClearText AI"
+                   Style="{StaticResource PageTitle}"
+                   VerticalOptions="Center" />
+
+            <Picker Grid.Column="1"
+                    WidthRequest="170"
+                    VerticalOptions="Center"
+                    ItemsSource="{Binding Presets}"
+                    SelectedItem="{Binding SelectedPreset}"
+                    ToolTipProperties.Text="Quick preset" />
+
+            <Button Grid.Column="3"
+                    Text="History"
+                    Style="{StaticResource SecondaryButton}"
+                    Command="{Binding OpenHistoryCommand}" />
+
+            <Button Grid.Column="4"
+                    Text="Settings"
+                    Style="{StaticResource SecondaryButton}"
+                    Command="{Binding OpenSettingsCommand}" />
+        </Grid>
+
+        <!-- Input and output side by side -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,*" ColumnSpacing="16">
+
+            <Border Grid.Column="0" Style="{StaticResource Card}">
+                <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
+                    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+                        <Label Grid.Column="0" Text="Original" Style="{StaticResource SectionTitle}" VerticalOptions="Center" />
+                        <Label Grid.Column="2" Text="{Binding CountsLabel}" Style="{StaticResource Muted}" VerticalOptions="Center" />
+                    </Grid>
+
+                    <Editor Grid.Row="1"
+                            x:Name="InputEditor"
+                            Text="{Binding InputText}"
+                            Placeholder="Paste or type the text you want to improve."
+                            AutoSize="Disabled"
+                            IsSpellCheckEnabled="False" />
+
+                    <Button Grid.Row="2"
+                            Text="Clear"
+                            HorizontalOptions="Start"
+                            Style="{StaticResource SecondaryButton}"
+                            Command="{Binding ClearInputCommand}" />
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1" Style="{StaticResource Card}">
+                <Grid RowDefinitions="Auto,*,Auto" RowSpacing="10">
+                    <Label Grid.Row="0" Text="Improved" Style="{StaticResource SectionTitle}" />
+
+                    <Grid Grid.Row="1">
+                        <Editor Text="{Binding OutputText}"
+                                IsReadOnly="True"
+                                Placeholder="The improved text appears here."
+                                AutoSize="Disabled"
+                                IsSpellCheckEnabled="False" />
+
+                        <!-- Progress state, shown only while a request is in flight -->
+                        <VerticalStackLayout IsVisible="{Binding IsBusy}"
+                                             Spacing="10"
+                                             HorizontalOptions="Center"
+                                             VerticalOptions="Center">
+                            <ActivityIndicator IsRunning="{Binding IsBusy}" Color="{StaticResource Primary}" />
+                            <Label Text="Improving your text..." Style="{StaticResource Muted}" HorizontalOptions="Center" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <HorizontalStackLayout Grid.Row="2" Spacing="8">
+                        <Button Text="Copy"
+                                Style="{StaticResource SecondaryButton}"
+                                Command="{Binding CopyOutputCommand}" />
+                        <Button Text="Replace input"
+                                Style="{StaticResource SecondaryButton}"
+                                Command="{Binding UseOutputAsInputCommand}" />
+                    </HorizontalStackLayout>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Action bar -->
+        <Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,*" ColumnSpacing="12" RowDefinitions="Auto,Auto" RowSpacing="6">
+            <Button Grid.Row="0" Grid.Column="0"
+                    Text="Improve Text"
+                    Style="{StaticResource PrimaryButton}"
+                    Command="{Binding ImproveTextCommand}"
+                    IsVisible="{Binding IsBusy, Converter={StaticResource InvertedBool}}" />
+
+            <Button Grid.Row="0" Grid.Column="0"
+                    Text="Cancel"
+                    Style="{StaticResource PrimaryButton}"
+                    BackgroundColor="{StaticResource Danger}"
+                    Command="{Binding ImproveTextCancelCommand}"
+                    IsVisible="{Binding IsBusy}" />
+
+            <Label Grid.Row="0" Grid.Column="2"
+                   Text="{Binding PrivacyNotice}"
+                   Style="{StaticResource Muted}"
+                   VerticalOptions="Center" />
+
+            <Label Grid.Row="1" Grid.ColumnSpan="3"
+                   Text="{Binding StatusMessage}"
+                   IsVisible="{Binding HasStatus}"
+                   Style="{StaticResource Muted}" />
+
+            <Label Grid.Row="1" Grid.ColumnSpan="3"
+                   Text="{Binding ErrorMessage}"
+                   IsVisible="{Binding HasError}"
+                   Style="{StaticResource ErrorText}" />
+        </Grid>
+    </Grid>
+</ContentPage>

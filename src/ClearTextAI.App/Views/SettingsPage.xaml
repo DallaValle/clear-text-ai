@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:ClearTextAI.Core.Models;assembly=ClearTextAI.Core"
+             xmlns:viewmodels="clr-namespace:ClearTextAI.Core.ViewModels;assembly=ClearTextAI.Core"
+             x:Class="ClearTextAI.App.Views.SettingsPage"
+             x:DataType="viewmodels:SettingsViewModel"
+             Title="Settings">
+
+    <!-- The feedback bar lives outside the ScrollView, so a message from any section shows
+         immediately instead of waiting at the bottom of a page the user has to scroll. -->
+    <Grid RowDefinitions="*,Auto">
+
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="20" Spacing="16" MaximumWidthRequest="760" HorizontalOptions="Fill">
+
+                <!-- No page heading here: the Shell navigation bar already renders the page title. -->
+                <Label Text="Each section saves on its own. Changing one never touches the others."
+                       Style="{StaticResource Muted}" />
+
+                <!-- Provider -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="AI provider" Style="{StaticResource SectionTitle}" />
+
+                        <Picker ItemsSource="{Binding Providers}"
+                                SelectedItem="{Binding SelectedProvider}" />
+
+                        <Label Text="Suggested models" Style="{StaticResource Muted}" IsVisible="{Binding HasSuggestedModels}" />
+                        <Picker ItemsSource="{Binding SuggestedModels}"
+                                ItemDisplayBinding="{Binding DisplayName, x:DataType=models:ModelOption}"
+                                SelectedItem="{Binding SelectedSuggestedModel}"
+                                IsVisible="{Binding HasSuggestedModels}" />
+
+                        <Label Text="Model" Style="{StaticResource Muted}" />
+                        <Entry Text="{Binding Model}" Placeholder="Model identifier" />
+
+                        <Label Text="API endpoint" Style="{StaticResource Muted}" />
+                        <Entry Text="{Binding Endpoint}" Placeholder="{Binding EndpointPlaceholder}" />
+
+                        <Label Text="API key" Style="{StaticResource Muted}" IsVisible="{Binding ApiKeyRequired}" />
+                        <Entry Text="{Binding ApiKey}"
+                               IsPassword="True"
+                               Placeholder="Paste a key to store or replace it" />
+                        <Label Text="{Binding ApiKeyStatus}" Style="{StaticResource Muted}" />
+                        <Label Text="Keys are stored in the operating system credential store, never in a settings file."
+                               Style="{StaticResource Muted}" />
+
+                        <HorizontalStackLayout Spacing="8">
+                            <Button Text="{Binding ApiKeyPageLabel}"
+                                    Style="{StaticResource LinkButton}"
+                                    IsVisible="{Binding HasApiKeyPage}"
+                                    Command="{Binding OpenApiKeyPageCommand}" />
+                            <Button Text="Remove stored key"
+                                    Style="{StaticResource SecondaryButton}"
+                                    IsEnabled="{Binding HasStoredApiKey}"
+                                    Command="{Binding RemoveApiKeyCommand}" />
+                        </HorizontalStackLayout>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                            <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                <Label Text="Max output tokens" Style="{StaticResource Muted}" />
+                                <Entry Text="{Binding MaxOutputTokens}" Keyboard="Numeric" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Label Text="Timeout (seconds)" Style="{StaticResource Muted}" />
+                                <Entry Text="{Binding TimeoutSeconds}" Keyboard="Numeric" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <HorizontalStackLayout Spacing="10">
+                            <Button Text="Save provider"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Command="{Binding SaveProviderCommand}"
+                                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}" />
+                            <Button Text="Test connection"
+                                    Style="{StaticResource SecondaryButton}"
+                                    HeightRequest="44"
+                                    Command="{Binding TestConnectionCommand}"
+                                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}" />
+                            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                                               Color="{StaticResource Primary}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Rewrite options -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Rewrite options" Style="{StaticResource SectionTitle}" />
+
+                        <Label Text="Preset" Style="{StaticResource Muted}" />
+                        <Picker ItemsSource="{Binding Presets}" SelectedItem="{Binding SelectedPreset}" />
+                        <Label Text="{Binding PresetDescription}" Style="{StaticResource Muted}" />
+
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                            <Label Grid.Column="0" Text="Creativity" VerticalOptions="Center" />
+                            <Slider Grid.Column="1"
+                                    Minimum="0" Maximum="1"
+                                    Value="{Binding Temperature}"
+                                    MinimumTrackColor="{StaticResource Primary}"
+                                    VerticalOptions="Center" />
+                            <Label Grid.Column="2" Text="{Binding TemperatureLabel}" VerticalOptions="Center" WidthRequest="30" />
+                        </Grid>
+                        <Label Text="{Binding TemperatureHint}" Style="{StaticResource Muted}" />
+
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                            <Label Grid.Column="0" Text="More human" VerticalOptions="Center" Style="{StaticResource Muted}" />
+                            <Slider Grid.Column="1"
+                                    Minimum="0" Maximum="3"
+                                    Value="{Binding StyleLevel}"
+                                    MinimumTrackColor="{StaticResource Primary}"
+                                    VerticalOptions="Center" />
+                            <Label Grid.Column="2" Text="More polished" VerticalOptions="Center" Style="{StaticResource Muted}" />
+                        </Grid>
+                        <Label Text="{Binding StyleLabel}" Style="{StaticResource Muted}" />
+
+                        <Label Text="Tone" Style="{StaticResource Muted}" />
+                        <Picker ItemsSource="{Binding Tones}" SelectedItem="{Binding SelectedTone}" />
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout Grid.Column="0">
+                                <Label Text="Preserve meaning" />
+                                <Label Text="Never change facts, numbers, names or URLs." Style="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" IsToggled="{Binding PreserveMeaning}" OnColor="{StaticResource Primary}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout Grid.Column="0">
+                                <Label Text="Grammar only" />
+                                <Label Text="Fix mistakes without rewording or restructuring." Style="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" IsToggled="{Binding GrammarOnly}" OnColor="{StaticResource Primary}" />
+                        </Grid>
+
+                        <Label Text="Custom instructions" Style="{StaticResource Muted}" />
+                        <Border Style="{StaticResource Card}" Padding="8">
+                            <Editor Text="{Binding CustomInstructions}"
+                                    HeightRequest="90"
+                                    AutoSize="Disabled"
+                                    Placeholder="Keep my messages short and natural. I work in software development, so do not replace technical terms with generic language." />
+                        </Border>
+
+                        <Button Text="Save rewrite options"
+                                HorizontalOptions="Start"
+                                Style="{StaticResource PrimaryButton}"
+                                Command="{Binding SaveRewriteOptionsCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Privacy -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Privacy" Style="{StaticResource SectionTitle}" />
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout Grid.Column="0">
+                                <Label Text="Keep local history" />
+                                <Label Text="Stored on this machine only, never uploaded." Style="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" IsToggled="{Binding HistoryEnabled}" OnColor="{StaticResource Primary}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout Grid.Column="0">
+                                <Label Text="Share anonymous usage data" />
+                                <Label Text="Off by default. Nothing is collected while this is off." Style="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" IsToggled="{Binding TelemetryEnabled}" OnColor="{StaticResource Primary}" />
+                        </Grid>
+
+                        <Button Text="Save privacy"
+                                HorizontalOptions="Start"
+                                Style="{StaticResource PrimaryButton}"
+                                Command="{Binding SavePrivacyCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}" />
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <VerticalStackLayout Grid.Row="1" IsVisible="{Binding HasMessage}" Spacing="0">
+            <BoxView HeightRequest="1"
+                     Color="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}" />
+            <VerticalStackLayout Padding="20,12"
+                                 Spacing="4"
+                                 BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceDark}}">
+                <Label Text="{Binding StatusMessage}" IsVisible="{Binding HasStatus}" Style="{StaticResource Muted}" />
+                <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorText}" />
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+
+    </Grid>
+</ContentPage>

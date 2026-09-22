@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Color x:Key="Primary">#2563EB</Color>
+    <Color x:Key="PrimaryHover">#1D4ED8</Color>
+    <Color x:Key="PrimaryText">#FFFFFF</Color>
+    <Color x:Key="Danger">#DC2626</Color>
+
+    <Color x:Key="PageBackgroundLight">#F5F7FA</Color>
+    <Color x:Key="PageBackgroundDark">#0B0F17</Color>
+    <Color x:Key="SurfaceLight">#FFFFFF</Color>
+    <Color x:Key="SurfaceDark">#141B26</Color>
+    <Color x:Key="SurfaceMutedLight">#EDF1F6</Color>
+    <Color x:Key="SurfaceMutedDark">#1B2431</Color>
+    <Color x:Key="BorderLight">#DDE3EC</Color>
+    <Color x:Key="BorderDark">#263243</Color>
+    <Color x:Key="TextLight">#0F172A</Color>
+    <Color x:Key="TextDark">#E8EDF6</Color>
+    <Color x:Key="TextMutedLight">#5F6C80</Color>
+    <Color x:Key="TextMutedDark">#94A3B8</Color>
+
+</ResourceDictionary>
