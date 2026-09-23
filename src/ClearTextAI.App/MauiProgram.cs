@@ -5,6 +5,7 @@ using ClearTextAI.Core.Services.AI;
 using ClearTextAI.Core.Services.History;
 using ClearTextAI.Core.Services.Platform;
 using ClearTextAI.Core.Services.Prompt;
+using ClearTextAI.Core.Services.Quick;
 using ClearTextAI.Core.Services.SecureStorage;
 using ClearTextAI.Core.Services.Settings;
 using ClearTextAI.Core.ViewModels;
@@ -50,6 +51,19 @@ public static class MauiProgram
         services.AddSingleton<IAiProvider>(sp => CreateOpenAiProvider(sp, AiProviderKind.OpenAiCompatible));
         services.AddSingleton<IAiProviderResolver, AiProviderResolver>();
         services.AddSingleton<IRewriteService, RewriteService>();
+
+        // The system wide shortcut and the pieces it drives.
+#if WINDOWS
+        services.AddSingleton<IGlobalHotkeyService, Platforms.Windows.WindowsGlobalHotkeyService>();
+        services.AddSingleton<ISelectionTextService, Platforms.Windows.WindowsSelectionTextService>();
+        services.AddSingleton<IQuickRewriteOverlay, Platforms.Windows.WindowsQuickRewriteOverlay>();
+#else
+        services.AddSingleton<IGlobalHotkeyService, UnsupportedGlobalHotkeyService>();
+        services.AddSingleton<ISelectionTextService, UnsupportedSelectionTextService>();
+        services.AddSingleton<IQuickRewriteOverlay, NoQuickRewriteOverlay>();
+#endif
+        services.AddSingleton<QuickRewriteCoordinator>();
+        services.AddSingleton<QuickRewriteHost>();
 
         // Shell, pages and view models.
         services.AddSingleton<AppShell>();

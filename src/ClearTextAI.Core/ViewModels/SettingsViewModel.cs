@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using ClearTextAI.Core.Models;
 using ClearTextAI.Core.Services.AI;
 using ClearTextAI.Core.Services.Platform;
+using ClearTextAI.Core.Services.Quick;
 using ClearTextAI.Core.Services.SecureStorage;
 using ClearTextAI.Core.Services.Settings;
 
@@ -135,6 +136,9 @@ public partial class SettingsViewModel : ObservableObject
     private bool _historyEnabled = true;
 
     [ObservableProperty]
+    private bool _globalShortcutEnabled = true;
+
+    [ObservableProperty]
     private bool _telemetryEnabled;
 
     [ObservableProperty]
@@ -189,6 +193,9 @@ public partial class SettingsViewModel : ObservableObject
         ? $"Leave empty for {url}"
         : "http://localhost:11434/v1";
 
+    public string GlobalShortcutDescription =>
+        $"Press {QuickRewrite.ShortcutDisplay} in any application to rewrite the selected text in place.";
+
     public string PresetDescription => RewritePresets.Description(SelectedPreset.Value);
 
     public string TemperatureLabel => $"{Temperature:0.0}";
@@ -234,6 +241,7 @@ public partial class SettingsViewModel : ObservableObject
             SelectedPreset = Presets.First(p => p.Value == options.Preset);
 
             HistoryEnabled = settings.HistoryEnabled;
+            GlobalShortcutEnabled = settings.GlobalShortcutEnabled;
             TelemetryEnabled = settings.TelemetryEnabled;
 
             ApiKey = string.Empty;
@@ -268,6 +276,15 @@ public partial class SettingsViewModel : ObservableObject
             await _settings.SaveAsync().ConfigureAwait(true);
         },
         "Rewrite options saved.");
+
+    [RelayCommand]
+    private Task SaveShortcutAsync() => SaveSectionAsync(
+        async () =>
+        {
+            ApplyShortcutToSettings();
+            await _settings.SaveAsync().ConfigureAwait(true);
+        },
+        "Shortcut setting saved.");
 
     [RelayCommand]
     private Task SavePrivacyAsync() => SaveSectionAsync(
@@ -416,6 +433,9 @@ public partial class SettingsViewModel : ObservableObject
         options.CustomInstructions = CustomInstructions;
         options.Preset = SelectedPreset.Value;
     }
+
+    private void ApplyShortcutToSettings() =>
+        _settings.Current.GlobalShortcutEnabled = GlobalShortcutEnabled;
 
     private void ApplyPrivacyToSettings()
     {

@@ -150,6 +150,30 @@
                     </VerticalStackLayout>
                 </Border>
 
+                <!-- Global shortcut -->
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="Global shortcut" Style="{StaticResource SectionTitle}" />
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <VerticalStackLayout Grid.Column="0">
+                                <Label Text="Improve selected text anywhere" />
+                                <Label Text="{Binding GlobalShortcutDescription}" Style="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" IsToggled="{Binding GlobalShortcutEnabled}" OnColor="{StaticResource Primary}" />
+                        </Grid>
+
+                        <Label Text="The app must be running. It copies the selection, rewrites it and pastes the result back, then restores your clipboard."
+                               Style="{StaticResource Muted}" />
+
+                        <Button Text="Save shortcut"
+                                HorizontalOptions="Start"
+                                Style="{StaticResource PrimaryButton}"
+                                Command="{Binding SaveShortcutCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource InvertedBool}}" />
+                    </VerticalStackLayout>
+                </Border>
+
                 <!-- Privacy -->
                 <Border Style="{StaticResource Card}">
                     <VerticalStackLayout Spacing="12">

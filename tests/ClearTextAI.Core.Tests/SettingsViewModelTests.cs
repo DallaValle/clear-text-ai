@@ -269,6 +269,33 @@ public class SettingsViewModelTests
     }
 
     [Fact]
+    public async Task SavingTheShortcut_TouchesOnlyTheShortcutFlag()
+    {
+        var (vm, settings, _, _, _, _, _) = Create();
+        await vm.LoadAsync();
+
+        vm.GlobalShortcutEnabled = false;
+        vm.HistoryEnabled = false;
+        vm.Temperature = 0.88;
+        await vm.SaveShortcutCommand.ExecuteAsync(null);
+
+        Assert.False(settings.Current.GlobalShortcutEnabled);
+        Assert.True(settings.Current.HistoryEnabled);
+        Assert.Equal(RewriteOptions.DefaultTemperature, settings.Current.RewriteOptions.Temperature);
+        Assert.Equal("Shortcut setting saved.", vm.StatusMessage);
+    }
+
+    [Fact]
+    public async Task GlobalShortcut_IsOnByDefaultAndNamesTheCombination()
+    {
+        var (vm, _, _, _, _, _, _) = Create();
+        await vm.LoadAsync();
+
+        Assert.True(vm.GlobalShortcutEnabled);
+        Assert.Contains(ClearTextAI.Core.Services.Quick.QuickRewrite.ShortcutDisplay, vm.GlobalShortcutDescription);
+    }
+
+    [Fact]
     public async Task SavingPrivacy_TouchesOnlyThePrivacyFlags()
     {
         var (vm, settings, _, _, _, _, _) = Create();

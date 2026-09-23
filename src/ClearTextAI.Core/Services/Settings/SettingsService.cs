@@ -13,7 +13,25 @@ public sealed class SettingsService : ISettingsService
     public SettingsService(IAppPaths paths)
     {
         _paths = paths;
-        Current = AppSettings.CreateDefault();
+
+        // Read on construction rather than waiting for someone to call LoadAsync: a rewrite can be
+        // triggered by the global shortcut before any page has opened, and it must use the real settings.
+        Current = ReadFromDisk() ?? AppSettings.CreateDefault();
+    }
+
+    private AppSettings? ReadFromDisk()
+    {
+        try
+        {
+            return File.Exists(_paths.SettingsFilePath)
+                ? JsonSerializer.Deserialize<AppSettings>(
+                    File.ReadAllText(_paths.SettingsFilePath), JsonDefaults.Options)?.Normalize()
+                : null;
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
     }
 
     public AppSettings Current { get; private set; }

@@ -12,6 +12,9 @@ public sealed class AppSettings
 
     public bool HistoryEnabled { get; set; } = true;
 
+    /// <summary>The system wide shortcut that rewrites the selected text in any application.</summary>
+    public bool GlobalShortcutEnabled { get; set; } = true;
+
     /// <summary>Opt-in only, and off by default. Nothing is collected while this is false.</summary>
     public bool TelemetryEnabled { get; set; }
 

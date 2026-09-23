@@ -44,6 +44,34 @@ public class SettingsServiceTests : IDisposable
         Assert.False(reloaded.HistoryEnabled);
     }
 
+    /// <summary>
+    /// The global shortcut can fire before any page has opened, so the settings must already be
+    /// the real ones by the time the service is constructed.
+    /// </summary>
+    [Fact]
+    public async Task Constructor_ReadsTheStoredFileWithoutAnyoneCallingLoad()
+    {
+        var first = new SettingsService(_directory.Paths);
+        first.Current.ActiveProvider = AiProviderKind.Grok;
+        first.Current.GetOrCreate(AiProviderKind.Grok).Model = "grok-4.6";
+        await first.SaveAsync();
+
+        var restarted = new SettingsService(_directory.Paths);
+
+        Assert.Equal(AiProviderKind.Grok, restarted.Current.ActiveProvider);
+        Assert.Equal("grok-4.6", restarted.Current.ActiveProviderSettings.Model);
+    }
+
+    [Fact]
+    public void Constructor_WithACorruptFile_StillGivesUsableDefaults()
+    {
+        File.WriteAllText(_directory.Paths.SettingsFilePath, "{ not json");
+
+        var service = new SettingsService(_directory.Paths);
+
+        Assert.Equal(AiProviderKind.Claude, service.Current.ActiveProvider);
+    }
+
     [Fact]
     public async Task SaveAsync_NeverWritesAnApiKey()
     {

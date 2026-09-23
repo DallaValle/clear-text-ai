@@ -68,6 +68,17 @@ Saving the provider never writes half-edited rewrite options, and saving rewrite
 Get a Claude API key from the [Anthropic Console](https://platform.claude.com/settings/keys).
 Settings links straight to it, so you do not have to look the address up.
 
+## Improve text anywhere, without leaving the app you are in
+
+While ClearText AI is running, select text in any application and press **Ctrl+Alt+I**.
+A small indicator appears next to the cursor showing a spinner and *Improving...*, and the selection is replaced in place with the improved version.
+
+It works by copying the selection, rewriting it, pasting the result back and then restoring whatever was on your clipboard before.
+Your clipboard is left exactly as it was.
+
+The shortcut can be turned off under **Global shortcut** in Settings.
+It is a Windows feature for now: a sandboxed Mac Catalyst app cannot register a system wide shortcut or send keystrokes to other applications, so on macOS the app reports it as unavailable and everything else keeps working.
+
 ## Keyboard shortcuts
 
 | Action | Windows | macOS |
@@ -77,6 +88,7 @@ Settings links straight to it, so you do not have to look the address up.
 | Clear input | `Ctrl` + `L` | `Cmd` + `L` |
 | Open settings | `Ctrl` + `,` | `Cmd` + `,` |
 | Open history | `Ctrl` + `H` | `Cmd` + `H` |
+| Improve the selected text in any app | `Ctrl` + `Alt` + `I` | not yet available |
 
 ## Rewrite options
 
@@ -262,7 +274,6 @@ Raw exceptions, request bodies and API keys are never shown or logged.
 
 The architecture leaves room for these without restructuring:
 
-- A global shortcut and "improve selected text" from other applications.
 - A tray or menu bar mode.
 - Streaming output, using the provider's streaming API behind the same interface.
 - Multiple saved writing profiles, since `RewriteOptions` is already a serializable value.
