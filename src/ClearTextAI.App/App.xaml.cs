@@ -24,7 +24,14 @@ public partial class App : Application
         };
 
         // The shortcut needs a live window to receive its message, so bind it once the window exists.
-        window.Created += (_, _) => _services.GetRequiredService<QuickRewriteHost>().Start(window);
+        window.Created += (_, _) =>
+        {
+            _services.GetRequiredService<QuickRewriteHost>().Start(window);
+#if WINDOWS
+            // Keeps that same window alive after the user closes it, which is what the shortcut is delivered to.
+            _services.GetRequiredService<Platforms.Windows.WindowsBackgroundHost>().Start(window);
+#endif
+        };
 
         return window;
     }

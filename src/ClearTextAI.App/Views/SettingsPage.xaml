@@ -163,7 +163,21 @@
                             <Switch Grid.Column="1" IsToggled="{Binding GlobalShortcutEnabled}" OnColor="{StaticResource Primary}" />
                         </Grid>
 
-                        <Label Text="The app must be running. It copies the selection, rewrites it and pastes the result back, then restores your clipboard."
+                        <!-- Windows only. The hidden window is what receives Ctrl+Alt+I, which Mac Catalyst cannot do. -->
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Grid.IsVisible>
+                                <OnPlatform x:TypeArguments="x:Boolean">
+                                    <On Platform="WinUI" Value="True" />
+                                </OnPlatform>
+                            </Grid.IsVisible>
+                            <VerticalStackLayout Grid.Column="0">
+                                <Label Text="Run in the background" />
+                                <Label Text="{Binding RunInBackgroundDescription}" Style="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                            <Switch Grid.Column="1" IsToggled="{Binding RunInBackground}" OnColor="{StaticResource Primary}" />
+                        </Grid>
+
+                        <Label Text="It copies the selection, rewrites it and pastes the result back, then restores your clipboard."
                                Style="{StaticResource Muted}" />
 
                         <Button Text="Save shortcut"

@@ -15,6 +15,12 @@ public sealed class AppSettings
     /// <summary>The system wide shortcut that rewrites the selected text in any application.</summary>
     public bool GlobalShortcutEnabled { get; set; } = true;
 
+    /// <summary>
+    /// On Windows, closing the window hides it in the notification area instead of quitting,
+    /// so the global shortcut keeps working. Quit from that icon.
+    /// </summary>
+    public bool RunInBackground { get; set; } = true;
+
     /// <summary>Opt-in only, and off by default. Nothing is collected while this is false.</summary>
     public bool TelemetryEnabled { get; set; }
 

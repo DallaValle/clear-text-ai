@@ -33,6 +33,7 @@ public class SettingsServiceTests : IDisposable
         service.Current.RewriteOptions.Tone = RewriteTone.Concise;
         service.Current.RewriteOptions.CustomInstructions = "keep technical terms";
         service.Current.HistoryEnabled = false;
+        service.Current.RunInBackground = false;
         await service.SaveAsync();
 
         var reloaded = await new SettingsService(_directory.Paths).LoadAsync();
@@ -42,6 +43,27 @@ public class SettingsServiceTests : IDisposable
         Assert.Equal(RewriteTone.Concise, reloaded.RewriteOptions.Tone);
         Assert.Equal("keep technical terms", reloaded.RewriteOptions.CustomInstructions);
         Assert.False(reloaded.HistoryEnabled);
+        Assert.False(reloaded.RunInBackground);
+    }
+
+    /// <summary>
+    /// Older settings files have no background flag. Missing means on, so an update does not
+    /// silently turn the shortcut off the next time the window is closed.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_MissingBackgroundFlag_StaysOn()
+    {
+        await File.WriteAllTextAsync(_directory.Paths.SettingsFilePath, """
+            {
+              "activeProvider": "Claude",
+              "globalShortcutEnabled": true
+            }
+            """);
+
+        var settings = await new SettingsService(_directory.Paths).LoadAsync();
+
+        Assert.True(settings.RunInBackground);
+        Assert.True(settings.GlobalShortcutEnabled);
     }
 
     /// <summary>

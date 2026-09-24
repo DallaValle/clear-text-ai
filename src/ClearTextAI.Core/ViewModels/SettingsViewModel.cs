@@ -139,6 +139,9 @@ public partial class SettingsViewModel : ObservableObject
     private bool _globalShortcutEnabled = true;
 
     [ObservableProperty]
+    private bool _runInBackground = true;
+
+    [ObservableProperty]
     private bool _telemetryEnabled;
 
     [ObservableProperty]
@@ -196,6 +199,9 @@ public partial class SettingsViewModel : ObservableObject
     public string GlobalShortcutDescription =>
         $"Press {QuickRewrite.ShortcutDisplay} in any application to rewrite the selected text in place.";
 
+    public string RunInBackgroundDescription =>
+        $"Closing the window leaves ClearText AI in the notification area, so {QuickRewrite.ShortcutDisplay} keeps working. Click the icon to open the window, or right-click it and choose Exit to quit.";
+
     public string PresetDescription => RewritePresets.Description(SelectedPreset.Value);
 
     public string TemperatureLabel => $"{Temperature:0.0}";
@@ -242,6 +248,7 @@ public partial class SettingsViewModel : ObservableObject
 
             HistoryEnabled = settings.HistoryEnabled;
             GlobalShortcutEnabled = settings.GlobalShortcutEnabled;
+            RunInBackground = settings.RunInBackground;
             TelemetryEnabled = settings.TelemetryEnabled;
 
             ApiKey = string.Empty;
@@ -434,8 +441,11 @@ public partial class SettingsViewModel : ObservableObject
         options.Preset = SelectedPreset.Value;
     }
 
-    private void ApplyShortcutToSettings() =>
+    private void ApplyShortcutToSettings()
+    {
         _settings.Current.GlobalShortcutEnabled = GlobalShortcutEnabled;
+        _settings.Current.RunInBackground = RunInBackground;
+    }
 
     private void ApplyPrivacyToSettings()
     {

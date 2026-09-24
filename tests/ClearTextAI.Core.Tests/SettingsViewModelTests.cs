@@ -40,6 +40,7 @@ public class SettingsViewModelTests
         var (vm, settings, _, _, _, _, _) = Create();
         settings.Current.RewriteOptions.Tone = RewriteTone.Formal;
         settings.Current.RewriteOptions.CustomInstructions = "no marketing speak";
+        settings.Current.RunInBackground = false;
 
         await vm.LoadAsync();
 
@@ -48,6 +49,7 @@ public class SettingsViewModelTests
         Assert.Equal(RewriteTone.Formal, vm.SelectedTone.Value);
         Assert.Equal("no marketing speak", vm.CustomInstructions);
         Assert.False(vm.HasStoredApiKey);
+        Assert.False(vm.RunInBackground);
     }
 
     [Fact]
@@ -275,11 +277,13 @@ public class SettingsViewModelTests
         await vm.LoadAsync();
 
         vm.GlobalShortcutEnabled = false;
+        vm.RunInBackground = false;
         vm.HistoryEnabled = false;
         vm.Temperature = 0.88;
         await vm.SaveShortcutCommand.ExecuteAsync(null);
 
         Assert.False(settings.Current.GlobalShortcutEnabled);
+        Assert.False(settings.Current.RunInBackground);
         Assert.True(settings.Current.HistoryEnabled);
         Assert.Equal(RewriteOptions.DefaultTemperature, settings.Current.RewriteOptions.Temperature);
         Assert.Equal("Shortcut setting saved.", vm.StatusMessage);
@@ -292,7 +296,9 @@ public class SettingsViewModelTests
         await vm.LoadAsync();
 
         Assert.True(vm.GlobalShortcutEnabled);
+        Assert.True(vm.RunInBackground);
         Assert.Contains(ClearTextAI.Core.Services.Quick.QuickRewrite.ShortcutDisplay, vm.GlobalShortcutDescription);
+        Assert.Contains(ClearTextAI.Core.Services.Quick.QuickRewrite.ShortcutDisplay, vm.RunInBackgroundDescription);
     }
 
     [Fact]
@@ -303,11 +309,13 @@ public class SettingsViewModelTests
 
         vm.HistoryEnabled = false;
         vm.TelemetryEnabled = true;
+        vm.RunInBackground = false;
         vm.Temperature = 0.77;
         await vm.SavePrivacyCommand.ExecuteAsync(null);
 
         Assert.False(settings.Current.HistoryEnabled);
         Assert.True(settings.Current.TelemetryEnabled);
+        Assert.True(settings.Current.RunInBackground);
         Assert.Equal(RewriteOptions.DefaultTemperature, settings.Current.RewriteOptions.Temperature);
         Assert.Equal("Privacy settings saved.", vm.StatusMessage);
     }

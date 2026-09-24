@@ -57,6 +57,7 @@ public static class MauiProgram
         services.AddSingleton<IGlobalHotkeyService, Platforms.Windows.WindowsGlobalHotkeyService>();
         services.AddSingleton<ISelectionTextService, Platforms.Windows.WindowsSelectionTextService>();
         services.AddSingleton<IQuickRewriteOverlay, Platforms.Windows.WindowsQuickRewriteOverlay>();
+        services.AddSingleton<Platforms.Windows.WindowsBackgroundHost>();
 #else
         services.AddSingleton<IGlobalHotkeyService, UnsupportedGlobalHotkeyService>();
         services.AddSingleton<ISelectionTextService, UnsupportedSelectionTextService>();

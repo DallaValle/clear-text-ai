@@ -47,6 +47,10 @@ That means the solution builds cleanly on either machine without a cross-platfor
 The Windows build is unpackaged (`WindowsPackageType=None`), so `dotnet run` starts it directly.
 You can also open `ClearTextAI.slnx` in Visual Studio or Visual Studio Code and press run.
 
+On Windows, closing the window leaves the process running so Ctrl+Alt+I still works.
+Exit from the notification icon, or **File** then **Exit**, before running or building again.
+Otherwise the executable stays locked and the build cannot replace it.
+
 Run the tests with:
 
 ```bash
@@ -76,7 +80,11 @@ A small indicator appears next to the cursor showing a spinner and *Improving...
 It works by copying the selection, rewriting it, pasting the result back and then restoring whatever was on your clipboard before.
 Your clipboard is left exactly as it was.
 
-The shortcut can be turned off under **Global shortcut** in Settings.
+On Windows the window can close without quitting.
+The process stays in the notification area, which is what keeps Ctrl+Alt+I working, and this is on by default.
+Click the icon to open the window again, or right-click it and choose **Exit** to quit.
+Starting the app again while it is already running brings that window back instead of opening a second copy.
+The shortcut and running in the background can both be turned off under **Global shortcut** in Settings.
 It is a Windows feature for now: a sandboxed Mac Catalyst app cannot register a system wide shortcut or send keystrokes to other applications, so on macOS the app reports it as unavailable and everything else keeps working.
 
 ## Keyboard shortcuts
@@ -229,7 +237,7 @@ clear-text-ai/
 │   └── ClearTextAI.App/           The .NET MAUI application
 │       ├── Views/                 MainPage, SettingsPage, HistoryPage
 │       ├── Services/              MAUI implementations of the Core abstractions
-│       ├── Platforms/Windows/     WinUI head, Windows Credential Manager store
+│       ├── Platforms/Windows/     WinUI head, credential store, global shortcut, notification area
 │       ├── Platforms/MacCatalyst/ Mac Catalyst head, Keychain store
 │       └── Resources/             Colors, styles, icon, splash
 │
@@ -274,7 +282,7 @@ Raw exceptions, request bodies and API keys are never shown or logged.
 
 The architecture leaves room for these without restructuring:
 
-- A tray or menu bar mode.
+- A menu bar mode on macOS.
 - Streaming output, using the provider's streaming API behind the same interface.
 - Multiple saved writing profiles, since `RewriteOptions` is already a serializable value.
 - Language detection, translation and custom prompt templates, through `IPromptBuilder`.
