@@ -2,6 +2,23 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
+    <!-- Mac Catalyst renders the iPad idiom at 77%, so Mac sizes are scaled by 1.3 to read at native size. -->
+    <OnPlatform x:Key="FontSizeSmall" x:TypeArguments="x:Double" Default="12">
+        <On Platform="MacCatalyst" Value="16" />
+    </OnPlatform>
+    <OnPlatform x:Key="FontSizeCaption" x:TypeArguments="x:Double" Default="13">
+        <On Platform="MacCatalyst" Value="17" />
+    </OnPlatform>
+    <OnPlatform x:Key="FontSizeBody" x:TypeArguments="x:Double" Default="14">
+        <On Platform="MacCatalyst" Value="18" />
+    </OnPlatform>
+    <OnPlatform x:Key="FontSizeButton" x:TypeArguments="x:Double" Default="15">
+        <On Platform="MacCatalyst" Value="20" />
+    </OnPlatform>
+    <OnPlatform x:Key="FontSizeTitle" x:TypeArguments="x:Double" Default="20">
+        <On Platform="MacCatalyst" Value="26" />
+    </OnPlatform>
+
     <Style TargetType="ContentPage" ApplyToDerivedTypes="True">
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource PageBackgroundLight}, Dark={StaticResource PageBackgroundDark}}" />
         <Setter Property="Padding" Value="0" />
@@ -9,32 +26,32 @@
 
     <Style TargetType="Label">
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextLight}, Dark={StaticResource TextDark}}" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
     </Style>
 
     <Style x:Key="PageTitle" TargetType="Label">
-        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeTitle}" />
         <Setter Property="FontAttributes" Value="Bold" />
     </Style>
 
     <Style x:Key="SectionTitle" TargetType="Label">
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
         <Setter Property="FontAttributes" Value="Bold" />
     </Style>
 
     <Style x:Key="Muted" TargetType="Label">
-        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSmall}" />
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
     </Style>
 
     <Style x:Key="ErrorText" TargetType="Label">
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
         <Setter Property="TextColor" Value="{StaticResource Danger}" />
     </Style>
 
     <!-- Deliberately the same metrics as ErrorText, so a result reads the same whether it went well or not. -->
     <Style x:Key="SuccessText" TargetType="Label">
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource SuccessLight}, Dark={StaticResource SuccessDark}}" />
     </Style>
 
@@ -51,21 +68,21 @@
         <Setter Property="BackgroundColor" Value="Transparent" />
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextLight}, Dark={StaticResource TextDark}}" />
         <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
     </Style>
 
     <Style TargetType="Entry">
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SurfaceMutedLight}, Dark={StaticResource SurfaceMutedDark}}" />
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextLight}, Dark={StaticResource TextDark}}" />
         <Setter Property="PlaceholderColor" Value="{AppThemeBinding Light={StaticResource TextMutedLight}, Dark={StaticResource TextMutedDark}}" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
         <Setter Property="HeightRequest" Value="38" />
     </Style>
 
     <Style TargetType="Picker">
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource SurfaceMutedLight}, Dark={StaticResource SurfaceMutedDark}}" />
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextLight}, Dark={StaticResource TextDark}}" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeBody}" />
         <Setter Property="HeightRequest" Value="38" />
     </Style>
 
@@ -73,7 +90,7 @@
         <Setter Property="BackgroundColor" Value="{StaticResource Primary}" />
         <Setter Property="TextColor" Value="{StaticResource PrimaryText}" />
         <Setter Property="FontAttributes" Value="Bold" />
-        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeButton}" />
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="HeightRequest" Value="44" />
         <Setter Property="Padding" Value="24,0" />
@@ -97,7 +114,7 @@
         <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource TextLight}, Dark={StaticResource TextDark}}" />
         <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource BorderLight}, Dark={StaticResource BorderDark}}" />
         <Setter Property="BorderWidth" Value="1" />
-        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="HeightRequest" Value="34" />
         <Setter Property="Padding" Value="14,0" />
