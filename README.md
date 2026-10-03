@@ -74,7 +74,7 @@ Settings links straight to it, so you do not have to look the address up.
 
 ## Improve text anywhere, without leaving the app you are in
 
-While ClearText AI is running, select text in any application and press **Ctrl+Alt+I**.
+While ClearText AI is running, select text in any application and press **Ctrl+Alt+I** on Windows or **Cmd+Shift+I** on macOS.
 A small indicator appears next to the cursor showing a spinner and *Improving...*, and the selection is replaced in place with the improved version.
 
 It works by copying the selection, rewriting it, pasting the result back and then restoring whatever was on your clipboard before.
@@ -85,7 +85,15 @@ The process stays in the notification area, which is what keeps Ctrl+Alt+I worki
 Click the icon to open the window again, or right-click it and choose **Exit** to quit.
 Starting the app again while it is already running brings that window back instead of opening a second copy.
 The shortcut and running in the background can both be turned off under **Global shortcut** in Settings.
-It is a Windows feature for now: a sandboxed Mac Catalyst app cannot register a system wide shortcut or send keystrokes to other applications, so on macOS the app reports it as unavailable and everything else keeps working.
+
+On macOS the first press asks for the Accessibility permission, which the app needs to send Cmd+C and Cmd+V to the app you are in.
+Allow ClearText AI under **System Settings > Privacy & Security > Accessibility**, then press the shortcut again.
+For the same reason the Mac build is not sandboxed, and it keeps its data in `~/Library/Application Support/ClearTextAI`.
+Settings and history from earlier sandboxed builds are copied over on first launch.
+
+Closing the window on macOS keeps ClearText AI running in the menu bar, so the shortcut keeps working.
+Open the window again or quit from its menu bar icon.
+The shortcut can be turned off under **Global shortcut** in Settings.
 
 ## Keyboard shortcuts
 

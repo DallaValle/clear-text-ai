@@ -62,7 +62,7 @@ public sealed class AiProviderException : Exception
         AiErrorKind.Cancelled =>
             "The request was cancelled.",
         AiErrorKind.CredentialStoreUnavailable =>
-            "The system credential store is not available, so the API key could not be read. Re-enter it in Settings.",
+            "The system credential store is not available, so the API key could not be saved or read. Check that the Keychain or Credential Manager is unlocked, then re-enter the key in Settings.",
         _ =>
             $"Something went wrong while talking to {provider}. Try again.",
     };

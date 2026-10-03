@@ -51,7 +51,7 @@ public sealed class QuickRewriteCoordinator
 
             await _overlay.HideAsync().ConfigureAwait(false);
         }
-        catch (AiProviderException ex)
+        catch (Exception ex) when (ex is AiProviderException or QuickRewriteUnavailableException)
         {
             await _overlay.ShowMessageAsync(ex.Message, isError: true).ConfigureAwait(false);
         }

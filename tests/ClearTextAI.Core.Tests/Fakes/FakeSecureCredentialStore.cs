@@ -9,6 +9,8 @@ public sealed class FakeSecureCredentialStore : ISecureCredentialStore
 
     public bool ThrowOnGet { get; set; }
 
+    public bool ThrowOnWrite { get; set; }
+
     public Task<string?> GetAsync(string key, CancellationToken cancellationToken = default)
     {
         if (ThrowOnGet)
@@ -21,6 +23,11 @@ public sealed class FakeSecureCredentialStore : ISecureCredentialStore
 
     public Task SetAsync(string key, string value, CancellationToken cancellationToken = default)
     {
+        if (ThrowOnWrite)
+        {
+            throw new InvalidOperationException("credential store offline");
+        }
+
         _values[key] = value;
         return Task.CompletedTask;
     }

@@ -17,6 +17,20 @@ public partial class AppShell : Shell
             Content = mainPage,
         });
 
+        RegisterRoutes();
+    }
+
+    private static bool _routesRegistered;
+
+    // A shell is built per window, but routes are process wide and must be registered once.
+    private static void RegisterRoutes()
+    {
+        if (_routesRegistered)
+        {
+            return;
+        }
+
+        _routesRegistered = true;
         Routing.RegisterRoute(AppRoutes.Settings, typeof(SettingsPage));
         Routing.RegisterRoute(AppRoutes.History, typeof(HistoryPage));
     }

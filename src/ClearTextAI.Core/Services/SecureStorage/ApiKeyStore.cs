@@ -40,14 +40,28 @@ public sealed class ApiKeyStore : IApiKeyStore
         }
     }
 
-    public Task SetAsync(AiProviderKind provider, string apiKey, CancellationToken cancellationToken = default)
+    public async Task SetAsync(AiProviderKind provider, string apiKey, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
-        return _credentialStore.SetAsync(KeyFor(provider), apiKey.Trim(), cancellationToken);
+        await GuardAsync(provider, () => _credentialStore.SetAsync(KeyFor(provider), apiKey.Trim(), cancellationToken))
+            .ConfigureAwait(false);
     }
 
     public Task RemoveAsync(AiProviderKind provider, CancellationToken cancellationToken = default) =>
-        _credentialStore.RemoveAsync(KeyFor(provider), cancellationToken);
+        GuardAsync(provider, () => _credentialStore.RemoveAsync(KeyFor(provider), cancellationToken));
+
+    // A store failure must read as a credential problem, not as a generic save error.
+    private static async Task GuardAsync(AiProviderKind provider, Func<Task> action)
+    {
+        try
+        {
+            await action().ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            throw AiProviderException.For(AiErrorKind.CredentialStoreUnavailable, provider.ToString(), ex);
+        }
+    }
 
     private static string KeyFor(AiProviderKind provider) =>
         KeyPrefix + provider.ToString().ToLowerInvariant();

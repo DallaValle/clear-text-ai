@@ -20,6 +20,8 @@ public class QuickRewriteCoordinatorTests
 
         public TaskCompletionSource? CaptureGate { get; set; }
 
+        public Exception? CaptureFailure { get; set; }
+
         public async Task<string?> CaptureSelectionAsync(CancellationToken cancellationToken = default)
         {
             CaptureCount++;
@@ -27,6 +29,11 @@ public class QuickRewriteCoordinatorTests
             if (CaptureGate is not null)
             {
                 await CaptureGate.Task.ConfigureAwait(false);
+            }
+
+            if (CaptureFailure is not null)
+            {
+                throw CaptureFailure;
             }
 
             return Selection;
@@ -147,6 +154,19 @@ public class QuickRewriteCoordinatorTests
         Assert.Null(selection.Replaced);
         Assert.True(overlay.LastWasError);
         Assert.Contains("No API key is configured", overlay.LastMessage);
+    }
+
+    [Fact]
+    public async Task Run_WhenThePlatformIsUnavailable_ShowsItsMessage()
+    {
+        var (coordinator, selection, rewrite, overlay) = Create();
+        selection.CaptureFailure = new QuickRewriteUnavailableException("Allow Accessibility access.");
+
+        await coordinator.RunAsync();
+
+        Assert.Null(rewrite.Received);
+        Assert.True(overlay.LastWasError);
+        Assert.Equal("Allow Accessibility access.", overlay.LastMessage);
     }
 
     [Fact]

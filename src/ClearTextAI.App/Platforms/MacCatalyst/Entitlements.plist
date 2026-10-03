@@ -2,10 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- Required so the app can reach the configured AI provider. -->
+	<!-- Not sandboxed: the global shortcut posts Cmd+C and Cmd+V to other apps, which the sandbox forbids. -->
 	<key>com.apple.security.app-sandbox</key>
-	<true/>
-	<key>com.apple.security.network.client</key>
-	<true/>
+	<false/>
 </dict>
 </plist>

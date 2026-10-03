@@ -67,6 +67,16 @@ public class ApiKeyStoreTests
     }
 
     [Fact]
+    public async Task SetAsync_WhenTheStoreFails_ThrowsAReadableError()
+    {
+        _credentials.ThrowOnWrite = true;
+
+        var error = await Assert.ThrowsAsync<AiProviderException>(() => _store.SetAsync(AiProviderKind.Claude, "key"));
+
+        Assert.Equal(AiErrorKind.CredentialStoreUnavailable, error.Kind);
+    }
+
+    [Fact]
     public async Task HasKeyAsync_WhenTheStoreFails_ReportsNoKeyRatherThanThrowing()
     {
         _credentials.ThrowOnGet = true;

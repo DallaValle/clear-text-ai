@@ -118,6 +118,24 @@ public class SettingsViewModelTests
     }
 
     [Fact]
+    public async Task Save_WhenTheKeyStoreFails_ReportsACredentialErrorAndKeepsTheField()
+    {
+        var settings = new InMemorySettingsService();
+        var credentials = new FakeSecureCredentialStore { ThrowOnWrite = true };
+        var resolver = new AiProviderResolver([new NoopProvider()], settings);
+        var vm = new SettingsViewModel(settings, new ApiKeyStore(credentials), resolver,
+            new FakeDialogService(), new FakeLinkOpener(), new FakeClipboardService());
+        await vm.LoadAsync();
+        vm.ApiKey = "sk-ant-test";
+
+        await vm.SaveProviderCommand.ExecuteAsync(null);
+
+        Assert.Equal(AiProviderException.For(AiErrorKind.CredentialStoreUnavailable, "Claude").Message, vm.ErrorMessage);
+        Assert.Equal("sk-ant-test", vm.ApiKey);
+        Assert.False(vm.HasStoredApiKey);
+    }
+
+    [Fact]
     public async Task RemoveApiKey_AsksFirstAndDeletesTheKey()
     {
         var (vm, _, keys, _, dialogs, _, _) = Create();

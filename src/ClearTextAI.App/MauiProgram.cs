@@ -27,7 +27,11 @@ public static class MauiProgram
     private static void RegisterServices(IServiceCollection services)
     {
         // Local storage and settings.
+#if MACCATALYST
+        services.AddSingleton<IAppPaths>(_ => Platforms.MacCatalyst.MacAppPaths.Create());
+#else
         services.AddSingleton<IAppPaths>(_ => AppPaths.CreateDefault());
+#endif
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<IHistoryStore>(sp => new JsonHistoryStore(sp.GetRequiredService<IAppPaths>()));
 
@@ -58,6 +62,10 @@ public static class MauiProgram
         services.AddSingleton<ISelectionTextService, Platforms.Windows.WindowsSelectionTextService>();
         services.AddSingleton<IQuickRewriteOverlay, Platforms.Windows.WindowsQuickRewriteOverlay>();
         services.AddSingleton<Platforms.Windows.WindowsBackgroundHost>();
+#elif MACCATALYST
+        services.AddSingleton<IGlobalHotkeyService, Platforms.MacCatalyst.MacGlobalHotkeyService>();
+        services.AddSingleton<ISelectionTextService, Platforms.MacCatalyst.MacSelectionTextService>();
+        services.AddSingleton<IQuickRewriteOverlay, Platforms.MacCatalyst.MacQuickRewriteOverlay>();
 #else
         services.AddSingleton<IGlobalHotkeyService, UnsupportedGlobalHotkeyService>();
         services.AddSingleton<ISelectionTextService, UnsupportedSelectionTextService>();
@@ -67,9 +75,10 @@ public static class MauiProgram
         services.AddSingleton<QuickRewriteHost>();
 
         // Shell, pages and view models.
-        services.AddSingleton<AppShell>();
+        // A window reopened from the menu bar needs its own shell and page; the view model keeps the state.
+        services.AddTransient<AppShell>();
         services.AddSingleton<MainViewModel>();
-        services.AddSingleton<MainPage>();
+        services.AddTransient<MainPage>();
         services.AddTransient<SettingsViewModel>();
         services.AddTransient<SettingsPage>();
         services.AddTransient<HistoryViewModel>();

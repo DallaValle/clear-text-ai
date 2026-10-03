@@ -6,13 +6,19 @@ public partial class App : Application
 {
     private readonly IServiceProvider _services;
 
+#if MACCATALYST
+    private Platforms.MacCatalyst.MacMenuBarItem? _menuBarItem;
+#endif
+
     public App(IServiceProvider services)
     {
         InitializeComponent();
         _services = services;
     }
 
-    protected override Window CreateWindow(IActivationState? activationState)
+    protected override Window CreateWindow(IActivationState? activationState) => BuildWindow();
+
+    private Window BuildWindow()
     {
         var window = new Window(_services.GetRequiredService<AppShell>())
         {
@@ -33,6 +39,34 @@ public partial class App : Application
 #endif
         };
 
+#if MACCATALYST
+        // Closing the window leaves the app running in the menu bar, where the shortcut keeps working.
+        window.Created += (_, _) =>
+        {
+            _menuBarItem ??= new Platforms.MacCatalyst.MacMenuBarItem(ShowWindow);
+            _menuBarItem.Install();
+        };
+        window.Destroying += (_, _) =>
+        {
+            if (Windows.All(w => w == window))
+            {
+                Platforms.MacCatalyst.MacMenuBarItem.EnterBackground();
+            }
+        };
+#endif
+
         return window;
     }
+
+#if MACCATALYST
+    private void ShowWindow()
+    {
+        Platforms.MacCatalyst.MacMenuBarItem.EnterForeground();
+
+        if (Windows.Count == 0)
+        {
+            OpenWindow(BuildWindow());
+        }
+    }
+#endif
 }
