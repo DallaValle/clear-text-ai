@@ -17,6 +17,18 @@ It is meant for work messages, emails, Slack and Teams posts, comments and other
 - Makes the smallest set of changes that achieves the above.
 - Sends your text to the configured AI provider only when you press **Improve Text**.
 
+## Install
+
+Download the latest build from [Releases](https://github.com/DallaValle/clear-text-ai/releases/latest):
+
+- **Windows**: `ClearTextAI-<version>-windows-x64.zip`. Extract it anywhere and run `ClearTextAI.exe`.
+- **macOS**: `ClearTextAI-<version>-macos.dmg`, one build for Apple silicon and Intel. Drag **ClearTextAI** onto **Applications**.
+
+The builds are not code signed or notarized yet, so both systems hesitate on the first launch.
+On Windows choose **More info**, then **Run anyway**.
+On macOS choose **Open Anyway** under **System Settings > Privacy & Security**.
+Each release lists the full steps, including what to do after an update.
+
 ## Requirements
 
 - [.NET SDK 10](https://dotnet.microsoft.com/download) or newer.
@@ -104,7 +116,7 @@ The shortcut can be turned off under **Global shortcut** in Settings.
 | Clear input | `Ctrl` + `L` | `Cmd` + `L` |
 | Open settings | `Ctrl` + `,` | `Cmd` + `,` |
 | Open history | `Ctrl` + `H` | `Cmd` + `H` |
-| Improve the selected text in any app | `Ctrl` + `Alt` + `I` | not yet available |
+| Improve the selected text in any app | `Ctrl` + `Alt` + `I` | `Cmd` + `Shift` + `I` |
 
 ## Rewrite options
 
@@ -286,11 +298,23 @@ Raw exceptions, request bodies and API keys are never shown or logged.
 - History storage: round-trip, ordering, the size cap, deletion, clearing, concurrent writes and corrupt files.
 - View models: counts, command availability, error presentation, presets and navigation.
 
+## Releasing
+
+Push a version tag and GitHub Actions does the rest:
+
+```bash
+git tag v0.2.0
+git push origin v0.2.0
+```
+
+The **Release** workflow runs the tests, builds the Windows zip and the macOS disk image, and publishes both as a GitHub release.
+Run it by hand from the **Actions** tab to build the same files without releasing anything.
+Tags must be plain `vMAJOR.MINOR.PATCH`, because macOS accepts only numbers in a bundle version.
+
 ## Designed to grow into
 
 The architecture leaves room for these without restructuring:
 
-- A menu bar mode on macOS.
 - Streaming output, using the provider's streaming API behind the same interface.
 - Multiple saved writing profiles, since `RewriteOptions` is already a serializable value.
 - Language detection, translation and custom prompt templates, through `IPromptBuilder`.

@@ -1,0 +1,185 @@
+name: Release
+
+# A v1.2.3 tag builds both apps and publishes a GitHub release.
+# Running it by hand builds the same artifacts without releasing, to check a build before tagging.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SDK_VERSION: 10.0.401
+  # Pinned together: workload set 10.0.402 moves Mac Catalyst to Xcode 27, which hosted runners only offer in preview.
+  DOTNET_WORKLOAD_VERSION: 10.0.401
+  XCODE_VERSION: '26.6'
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      label: ${{ steps.version.outputs.label }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            version="${GITHUB_REF_NAME#v}"
+            label="$version"
+          else
+            version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props)
+            label="$version-${GITHUB_SHA::7}"
+          fi
+          # macOS bundle versions accept dotted integers only, so suffixes such as -beta cannot ship.
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Version '$version' must look like 1.2.3"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "label=$label" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_SDK_VERSION }}
+
+      - name: Test
+        run: dotnet test tests/ClearTextAI.Core.Tests/ClearTextAI.Core.Tests.csproj -c Release
+
+  windows:
+    name: Windows
+    needs: test
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    env:
+      VERSION: ${{ needs.test.outputs.version }}
+      LABEL: ${{ needs.test.outputs.label }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_SDK_VERSION }}
+
+      - name: Install MAUI workload
+        run: dotnet workload install maui-windows --version "$DOTNET_WORKLOAD_VERSION"
+
+      # Self contained twice over, so the folder runs on a clean PC without the .NET or Windows App SDK runtimes.
+      - name: Publish
+        run: >
+          dotnet publish src/ClearTextAI.App/ClearTextAI.App.csproj
+          -c Release -f net10.0-windows10.0.19041.0 -r win-x64 --self-contained
+          -p:WindowsAppSDKSelfContained=true
+          -p:Version="$VERSION"
+          -p:ApplicationDisplayVersion="$VERSION"
+          -p:ApplicationVersion=${{ github.run_number }}
+          -o publish/ClearTextAI
+
+      - name: Package
+        shell: pwsh
+        run: Compress-Archive -Path publish/ClearTextAI -DestinationPath "ClearTextAI-$env:LABEL-windows-x64.zip"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: windows
+          path: ClearTextAI-*-windows-x64.zip
+          if-no-files-found: error
+
+  macos:
+    name: macOS
+    needs: test
+    runs-on: macos-26
+    env:
+      VERSION: ${{ needs.test.outputs.version }}
+      LABEL: ${{ needs.test.outputs.label }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Select Xcode
+        run: sudo xcode-select --switch "/Applications/Xcode_$XCODE_VERSION.app"
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_SDK_VERSION }}
+
+      - name: Install MAUI workload
+        run: dotnet workload install maui-maccatalyst --version "$DOTNET_WORKLOAD_VERSION"
+
+      # Ad hoc signed: Apple silicon reports an unsigned bundle as damaged, an ad hoc one only as unverified.
+      - name: Publish
+        run: >
+          dotnet publish src/ClearTextAI.App/ClearTextAI.App.csproj
+          -c Release -f net10.0-maccatalyst
+          -p:CreatePackage=false
+          -p:EnableCodeSigning=true
+          -p:CodesignKey=-
+          -p:Version="$VERSION"
+          -p:ApplicationDisplayVersion="$VERSION"
+          -p:ApplicationVersion=${{ github.run_number }}
+
+      - name: Verify bundle
+        run: |
+          app=src/ClearTextAI.App/bin/Release/net10.0-maccatalyst/ClearTextAI.app
+          if [[ ! -d "$app" ]]; then
+            find src/ClearTextAI.App/bin -maxdepth 4 -name '*.app'
+            exit 1
+          fi
+          codesign --verify --deep --strict --verbose=2 "$app"
+          lipo "$app/Contents/MacOS/ClearTextAI" -verify_arch arm64 x86_64
+          plutil -extract CFBundleShortVersionString raw "$app/Contents/Info.plist" | grep -qx "$VERSION"
+
+      - name: Package
+        run: |
+          mkdir dmg
+          ditto src/ClearTextAI.App/bin/Release/net10.0-maccatalyst/ClearTextAI.app dmg/ClearTextAI.app
+          ln -s /Applications dmg/Applications
+          # hdiutil intermittently fails with "Resource busy" on hosted runners.
+          for attempt in 1 2 3; do
+            hdiutil create -volname "ClearText AI" -srcfolder dmg -format UDZO -ov "ClearTextAI-$LABEL-macos.dmg" && exit 0
+            sleep 10
+          done
+          exit 1
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: macos
+          path: ClearTextAI-*-macos.dmg
+          if-no-files-found: error
+
+  release:
+    name: Release
+    needs: [test, windows, macos]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.test.outputs.version }}
+        run: >
+          gh release create "$GITHUB_REF_NAME" dist/*
+          --title "ClearText AI $VERSION"
+          --notes-file .github/release-notes.md
+          --generate-notes
