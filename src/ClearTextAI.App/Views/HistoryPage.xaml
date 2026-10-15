@@ -51,11 +51,11 @@
                             <HorizontalStackLayout Spacing="8">
                                 <Button Text="Copy"
                                         Style="{StaticResource SecondaryButton}"
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:HistoryViewModel}}, Path=CopyCommand}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:HistoryViewModel}}, Path=CopyCommand, x:DataType=viewmodels:HistoryViewModel}"
                                         CommandParameter="{Binding .}" />
                                 <Button Text="Delete"
                                         Style="{StaticResource SecondaryButton}"
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:HistoryViewModel}}, Path=DeleteCommand}"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:HistoryViewModel}}, Path=DeleteCommand, x:DataType=viewmodels:HistoryViewModel}"
                                         CommandParameter="{Binding .}" />
                             </HorizontalStackLayout>
                         </VerticalStackLayout>
