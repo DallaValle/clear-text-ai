@@ -77,20 +77,47 @@ jobs:
       - name: Install MAUI workload
         run: dotnet workload install maui-windows --version "$DOTNET_WORKLOAD_VERSION"
 
-      # Self contained twice over, so the folder runs on a clean PC without the .NET or Windows App SDK runtimes.
+      # One self contained exe that runs on a clean PC without the .NET or Windows App SDK runtimes.
+      # WinUI expects resources.pri and its native libraries beside the app, so everything unpacks
+      # together on first launch. The smoke test below catches a .NET release that drops this mode.
       - name: Publish
-        run: >
-          dotnet publish src/ClearTextAI.App/ClearTextAI.App.csproj
-          -c Release -f net10.0-windows10.0.19041.0 -r win-x64 --self-contained
-          -p:WindowsAppSDKSelfContained=true
-          -p:Version="$VERSION"
-          -p:ApplicationDisplayVersion="$VERSION"
-          -p:ApplicationVersion=${{ github.run_number }}
-          -o publish/ClearTextAI
+        run: |
+          dotnet publish src/ClearTextAI.App/ClearTextAI.App.csproj \
+            -c Release -f net10.0-windows10.0.19041.0 -r win-x64 --self-contained \
+            -p:WindowsAppSDKSelfContained=true \
+            -p:PublishSingleFile=true \
+            -p:IncludeAllContentForSelfExtract=true \
+            -p:EnableCompressionInSingleFile=true \
+            -p:DebugType=none \
+            -p:Version="$VERSION" \
+            -p:ApplicationDisplayVersion="$VERSION" \
+            -p:ApplicationVersion=${{ github.run_number }} \
+            -o publish
+          if [[ "$(ls publish)" != "ClearTextAI.exe" ]]; then
+            echo "::error::Expected publish to contain only ClearTextAI.exe, found: $(ls publish | tr '\n' ' ')"
+            exit 1
+          fi
 
       - name: Package
         shell: pwsh
-        run: Compress-Archive -Path publish/ClearTextAI -DestinationPath "ClearTextAI-$env:LABEL-windows-x64.zip"
+        run: Compress-Archive -Path publish/ClearTextAI.exe -DestinationPath "ClearTextAI-$env:LABEL-windows-x64.zip"
+
+      - name: Smoke test
+        shell: pwsh
+        run: |
+          Expand-Archive "ClearTextAI-$env:LABEL-windows-x64.zip" smoke
+          $app = Start-Process (Resolve-Path smoke/ClearTextAI.exe) -PassThru
+          $deadline = (Get-Date).AddMinutes(2)
+          while (-not $app.HasExited -and $app.MainWindowHandle -eq 0 -and (Get-Date) -lt $deadline) {
+            Start-Sleep -Milliseconds 500
+            $app.Refresh()
+          }
+          # A broken package tends to show its window and then crash, so it has to survive a little longer.
+          Start-Sleep -Seconds 5
+          $app.Refresh()
+          if ($app.HasExited) { throw "ClearText AI exited during startup with code $($app.ExitCode)" }
+          if ($app.MainWindowHandle -eq 0) { throw "ClearText AI did not open its window" }
+          Stop-Process -Id $app.Id
 
       - uses: actions/upload-artifact@v7
         with:
@@ -150,6 +177,19 @@ jobs:
             sleep 10
           done
           exit 1
+
+      - name: Smoke test
+        run: |
+          exe=$(plutil -extract CFBundleExecutable raw "$APP/Contents/Info.plist")
+          open "$APP"
+          for _ in $(seq 60); do pgrep -x "$exe" > /dev/null && break; sleep 1; done
+          # A broken bundle tends to launch and then crash, so it has to survive a little longer.
+          sleep 10
+          if ! pgrep -x "$exe" > /dev/null; then
+            echo "::error::ClearText AI is not running ten seconds after launch"
+            exit 1
+          fi
+          pkill -x "$exe"
 
       - uses: actions/upload-artifact@v7
         with:

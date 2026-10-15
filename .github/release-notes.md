@@ -2,16 +2,17 @@
 
 ### Windows
 
-1. Download the `windows-x64.zip` below and extract it to a folder of your choice.
-2. Run `ClearTextAI.exe` from that folder.
+1. Download the `windows-x64.zip` below and extract `ClearTextAI.exe` to a folder of your choice.
+2. Run `ClearTextAI.exe`.
+   The first launch takes a few seconds longer while it unpacks itself.
 3. The build is not code signed yet, so SmartScreen may stop the first launch.
    Choose **More info**, then **Run anyway**.
 4. On a company managed PC, Microsoft Defender may block it outright with "Access is denied" or a notice that your IT administrator blocked it.
    Your IT team has to allow ClearText AI until releases are code signed.
 
 Needs Windows 10 version 1809 or newer on a 64 bit Intel or AMD PC.
-To update, exit ClearText AI from its notification area icon and replace the folder.
-Settings, history and your API key live outside the folder and carry over.
+To update, exit ClearText AI from its notification area icon and replace `ClearTextAI.exe`.
+Settings, history and your API key are stored separately and carry over.
 
 ### macOS
 

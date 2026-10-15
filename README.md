@@ -21,7 +21,7 @@ It is meant for work messages, emails, Slack and Teams posts, comments and other
 
 Download the latest build from [Releases](https://github.com/DallaValle/clear-text-ai/releases/latest):
 
-- **Windows**: `ClearTextAI-<version>-windows-x64.zip`. Extract it anywhere and run `ClearTextAI.exe`.
+- **Windows**: `ClearTextAI-<version>-windows-x64.zip`, a single `ClearTextAI.exe`. Extract it anywhere and run it.
 - **macOS**: `ClearTextAI-<version>-macos.dmg`, one build for Apple silicon and Intel. Drag **ClearText AI** onto **Applications**.
 
 The builds are not code signed or notarized yet, so both systems hesitate on the first launch.
