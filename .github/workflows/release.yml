@@ -105,6 +105,8 @@ jobs:
     env:
       VERSION: ${{ needs.test.outputs.version }}
       LABEL: ${{ needs.test.outputs.label }}
+      # Named after ApplicationTitle; the universal bundle sits above the per architecture builds.
+      APP: src/ClearTextAI.App/bin/Release/net10.0-maccatalyst/ClearText AI.app
     steps:
       - uses: actions/checkout@v7
 
@@ -132,19 +134,15 @@ jobs:
 
       - name: Verify bundle
         run: |
-          app=src/ClearTextAI.App/bin/Release/net10.0-maccatalyst/ClearTextAI.app
-          if [[ ! -d "$app" ]]; then
-            find src/ClearTextAI.App/bin -maxdepth 4 -name '*.app'
-            exit 1
-          fi
-          codesign --verify --deep --strict --verbose=2 "$app"
-          lipo "$app/Contents/MacOS/ClearTextAI" -verify_arch arm64 x86_64
-          plutil -extract CFBundleShortVersionString raw "$app/Contents/Info.plist" | grep -qx "$VERSION"
+          plist="$APP/Contents/Info.plist"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          lipo "$APP/Contents/MacOS/$(plutil -extract CFBundleExecutable raw "$plist")" -verify_arch arm64 x86_64
+          plutil -extract CFBundleShortVersionString raw "$plist" | grep -qx "$VERSION"
 
       - name: Package
         run: |
           mkdir dmg
-          ditto src/ClearTextAI.App/bin/Release/net10.0-maccatalyst/ClearTextAI.app dmg/ClearTextAI.app
+          ditto "$APP" "dmg/$(basename "$APP")"
           ln -s /Applications dmg/Applications
           # hdiutil intermittently fails with "Resource busy" on hosted runners.
           for attempt in 1 2 3; do

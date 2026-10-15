@@ -13,10 +13,10 @@ Settings, history and your API key live outside the folder and carry over.
 
 ### macOS
 
-1. Download the `macos.dmg` below, open it and drag **ClearTextAI** onto **Applications**.
-2. Open ClearTextAI from Applications.
+1. Download the `macos.dmg` below, open it and drag **ClearText AI** onto **Applications**.
+2. Open ClearText AI from Applications.
    The build is not notarized yet, so macOS refuses the first launch.
-3. Open **System Settings > Privacy & Security**, find the message about ClearTextAI and choose **Open Anyway**.
+3. Open **System Settings > Privacy & Security**, find the message about ClearText AI and choose **Open Anyway**.
 4. Select text in any app, press **Cmd+Shift+I** and allow ClearText AI under **Accessibility** when asked.
 
 Runs natively on Apple silicon and Intel Macs with macOS 12 or newer.

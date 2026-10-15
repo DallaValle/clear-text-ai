@@ -22,7 +22,7 @@ It is meant for work messages, emails, Slack and Teams posts, comments and other
 Download the latest build from [Releases](https://github.com/DallaValle/clear-text-ai/releases/latest):
 
 - **Windows**: `ClearTextAI-<version>-windows-x64.zip`. Extract it anywhere and run `ClearTextAI.exe`.
-- **macOS**: `ClearTextAI-<version>-macos.dmg`, one build for Apple silicon and Intel. Drag **ClearTextAI** onto **Applications**.
+- **macOS**: `ClearTextAI-<version>-macos.dmg`, one build for Apple silicon and Intel. Drag **ClearText AI** onto **Applications**.
 
 The builds are not code signed or notarized yet, so both systems hesitate on the first launch.
 On Windows choose **More info**, then **Run anyway**.
