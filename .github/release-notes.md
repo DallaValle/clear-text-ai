@@ -6,6 +6,8 @@
 2. Run `ClearTextAI.exe` from that folder.
 3. The build is not code signed yet, so SmartScreen may stop the first launch.
    Choose **More info**, then **Run anyway**.
+4. On a company managed PC, Microsoft Defender may block it outright with "Access is denied" or a notice that your IT administrator blocked it.
+   Your IT team has to allow ClearText AI until releases are code signed.
 
 Needs Windows 10 version 1809 or newer on a 64 bit Intel or AMD PC.
 To update, exit ClearText AI from its notification area icon and replace the folder.
